@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.font.im">
+  <link rel="preconnect" href="https://fonts.font.im" crossorigin>
+  <link href="https://fonts.font.im/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="description" content="种下石榴籽，开出团结花">
+  <title>种下石榴籽，开出团结花</title>
+  <script src="assets/echarts-5.4.3.min.js"></script>
+  <script src="assets/echarts-china-map.js"></script>
+  <style>
+@font-face {
+      font-family: "阿里巴巴东方大楷";
+      src: url("assets/AlimamaDongFangDaKai-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --black: #000;
+      --white: #f4eee2;
+      --muted: #c8bdac;
+      --gold: #d9a84e;
+      --copper: #a75536;
+      --line: rgba(244, 238, 226, .28);
+      --font: "Noto Serif SC", "Source Han Serif CN", "Source Han Serif SC", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--black); }
+    body { color: var(--white); background: var(--black); font-family: var(--font); }
+    button { font: inherit; }
+    ::selection { color: var(--black); background: var(--gold); }
+
+    .reading-progress { position: fixed; z-index: 40; top: 0; left: 0; width: 100%; height: 3px; background: rgba(244,238,226,.1); }
+    .reading-progress span { display: block; width: 100%; height: 100%; background: var(--gold); transform: scaleX(.05); transform-origin: left center; transition: transform .82s ease; }
+    .top-nav { position: fixed; z-index: 45; top: 20px; right: clamp(20px, 3vw, 48px); display: grid; justify-items: end; }
+    .nav-toggle { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(217,168,78,.62); color: var(--gold); background: rgba(0,0,0,.76); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); cursor: pointer; transition: color .25s ease, border-color .25s ease, background .25s ease; }
+    .nav-toggle span { position: relative; width: 18px; height: 12px; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; }
+    .nav-toggle span::after { content: ""; position: absolute; top: 5px; left: 0; width: 100%; border-top: 1px solid currentColor; }
+    .nav-toggle:hover, .nav-toggle:focus-visible, .top-nav.is-open .nav-toggle { border-color: var(--gold); color: #fff4d7; background: rgba(19,14,8,.94); outline: none; }
+    .nav-panel { position: absolute; top: 0; right: 0; display: grid; gap: 16px; min-width: 252px; padding: 22px 22px 20px; border: 1px solid rgba(217,168,78,.48); background: rgba(5,5,5,.91); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); opacity: 0; pointer-events: none; transform: translateY(-8px) scale(.96); transform-origin: top right; transition: opacity .25s ease, transform .25s ease; }
+    .top-nav.is-open .nav-panel { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .nav-brand { color: var(--gold); font-size: 15px; letter-spacing: .22em; white-space: nowrap; }
+    .nav-links { display: grid; gap: 3px; }
+    .nav-link { position: relative; width: 100%; padding: 10px 2px; border: 0; color: var(--muted); background: transparent; font-size: 14px; letter-spacing: .08em; text-align: left; cursor: pointer; transition: color .3s ease, padding-left .3s ease; }
+    .nav-link::after { content: ""; position: absolute; left: 0; bottom: 5px; width: 18px; height: 1px; background: var(--gold); transform: scaleX(0); transform-origin: left center; transition: transform .35s ease; }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active { color: var(--gold); outline: none; }
+    .nav-link.active::after { transform: scaleX(1); }
+
+    .pages { position: fixed; inset: 0; width: 100%; height: auto; }
+    .page { position: absolute; inset: 0; z-index: 0; display: grid; place-items: center; padding: clamp(96px, 12vh, 132px) clamp(26px, 7vw, 110px) 84px; overflow: auto; opacity: 0; visibility: hidden; pointer-events: none; background: var(--black); transition: opacity .82s ease, visibility 0s linear .82s; }
+    .page.active { z-index: 2; opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .82s ease, visibility 0s linear 0s; }
+    .page-content { position: relative; z-index: 2; width: min(1220px, 100%); opacity: 0; transform: translateY(16px); transition: opacity .65s .1s ease, transform .65s .1s ease; }
+    .page.active .page-content { opacity: 1; transform: translateY(0); }
+    .page:not(.cover):not(.chapter-title):not(.news-interlude)::before, .page:not(.cover):not(.chapter-title):not(.news-interlude)::after { content: ""; position: absolute; z-index: 1; width: clamp(96px, 10vw, 165px); height: clamp(193px, 20vw, 331px); background: url("assets/corner-pomegranate-pattern.jpg") center / cover no-repeat; opacity: .56; pointer-events: none; }
+    .page:not(.cover):not(.chapter-title):not(.news-interlude)::before { top: 0; left: 0; }
+    .page:not(.cover):not(.chapter-title):not(.news-interlude)::after { right: 0; bottom: 0; transform: rotate(180deg); }
+    .page-number { position: fixed; z-index: 35; top: 26px; left: clamp(20px, 4vw, 54px); color: var(--muted); font-size: 13px; letter-spacing: .14em; }
+    .page-number b { color: var(--gold); font-weight: 600; }
+    .next { position: fixed; z-index: 35; left: 50%; bottom: 23px; display: grid; place-items: center; width: 34px; height: 30px; padding: 0; border: 0; color: rgba(255,255,255,.68); background: transparent; cursor: pointer; transform: translateX(-50%); animation: next-float 2s ease-in-out infinite; transition: color .22s ease, opacity .22s ease; }
+    .next:hover, .next:focus-visible { color: #fff; outline: none; }
+    .next[hidden] { display: none; }
+    .next svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    @keyframes next-float { 0%,100% { margin-bottom: 0; } 50% { margin-bottom: 9px; } }
+
+    h1, h2, h3, p { margin: 0; }
+    h1, h2 { text-wrap: balance; word-break: keep-all; line-break: strict; }
+    .reveal-char { opacity: 0; }
+    .page.active.reveal-playing .reveal-char { animation: reveal-char .42s ease forwards; animation-delay: var(--char-delay); }
+    @keyframes reveal-char { from { opacity: 0; } to { opacity: 1; } }
+    .cover { position: relative; overflow: hidden; text-align: center; }
+    .cover.active { opacity: 1 !important; visibility: visible !important; }
+    .cover-background { display: none; }
+    .cover .page-content { position: fixed; z-index: 10; top: 50%; left: 62%; width: min(900px, 68vw); transform: translate(-50%, calc(-50% + 16px)); }
+    .cover.active .page-content { opacity: 1 !important; visibility: visible !important; transform: translate(-50%, -50%); }
+    .cover-ornament { position: fixed; top: 0; bottom: 0; z-index: 0; width: 0; height: auto; pointer-events: none; opacity: 1; transform: scale(1); transform-origin: left center; transition: opacity .72s ease, transform .72s cubic-bezier(.2,.7,.2,1); }
+    .cover-ornament img { position: absolute; top: 50%; left: 0; display: block; width: auto; max-width: none; height: 120%; object-fit: contain; animation: cover-ornament-turn 54s linear infinite; will-change: transform; }
+    .cover-ornament.left { left: 0; }
+    .cover .cover-ornament { z-index: 5; }
+    .page.is-leaving .cover-ornament { opacity: 0; transform: scale(1.6); }
+    .page.is-leaving .cover-ornament img { animation-duration: .68s; }
+    @keyframes cover-ornament-turn { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+    .cover h1 { font-family: "阿里巴巴东方大楷", var(--font); font-size: clamp(52px, 9vw, 128px); font-weight: 400; line-height: 1.08; letter-spacing: .08em; }
+    .cover .subtitle { margin-top: 29px; color: var(--white); font-size: clamp(24px, 3vw, 41px); line-height: 1.5; letter-spacing: .11em; }
+    .cover .page-content { width: min(960px, 64vw); }
+    .cover .page-content::before { content: ""; display: block; width: 100%; aspect-ratio: 1535 / 1024; background: url("assets/cover-title-brush.jpg") center / contain no-repeat; }
+    .cover .page-content h1, .cover .page-content .subtitle { display: none; }
+
+    .news-interlude { padding: clamp(22px, 2vw, 36px); overflow: hidden; background: radial-gradient(circle at 50% 49%, rgba(255,255,255,.035), transparent 25%), #050505; }
+    .interlude-stage { position: relative; z-index: 2; display: grid; width: 100%; height: 100%; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-template-rows: repeat(10, minmax(0, 1fr)); gap: clamp(11px, .9vw, 17px); }
+    .interlude-card { position: relative; display: grid; grid-template-rows: 36% 64%; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid rgba(var(--interlude-rgb), .68); background: #0d0d0d; opacity: 0; transform: translateY(12px) scale(.992); animation: interlude-card-in .72s cubic-bezier(.2,.72,.2,1) .12s forwards; transition: transform .72s cubic-bezier(.2,.72,.2,1), opacity .62s ease, filter .62s ease; }
+    .interlude-card::before { content: ""; position: absolute; inset: 5px; z-index: 1; border: 1px solid rgba(255,255,255,.055); pointer-events: none; }
+    .interlude-card:nth-child(1) { grid-column: 1 / 5; grid-row: 1 / 6; }
+    .interlude-card:nth-child(2) { grid-column: 5 / 15; grid-row: 1 / 4; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
+    .interlude-card:nth-child(3) { grid-column: 15 / 19; grid-row: 1 / 6; }
+    .interlude-card:nth-child(4) { grid-column: 1 / 5; grid-row: 6 / 11; }
+    .interlude-card:nth-child(5) { grid-column: 15 / 19; grid-row: 6 / 11; }
+    .interlude-card:nth-child(6) { grid-column: 5 / 15; grid-row: 8 / 11; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
+    .interlude-photo { position: relative; min-width: 0; min-height: 0; background: linear-gradient(135deg, rgba(var(--interlude-rgb),.68), transparent 66%), radial-gradient(circle at 72% 26%, rgba(255,255,255,.23), transparent 23%), #151515; }
+    .interlude-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,.72) 100%); }
+    .interlude-copy { display: flex; flex-direction: column; min-height: 0; padding: clamp(12px, 1.15vw, 21px) clamp(14px, 1.35vw, 25px); }
+    .interlude-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 7px; border-bottom: 1px solid rgba(var(--interlude-rgb),.34); color: rgb(var(--interlude-rgb)); font-size: clamp(9px, .67vw, 12px); font-family: var(--font); font-weight: 600; letter-spacing: .12em; }
+    .interlude-head small { color: rgba(255,255,255,.28); font-size: 11px; }
+    .interlude-card h2 { margin: clamp(7px, .7vw, 12px) 0; color: var(--white); font-size: clamp(15px, 1.16vw, 23px); line-height: 1.35; letter-spacing: .02em; }
+    .interlude-stat { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 7px; border-top: 1px dotted rgba(255,255,255,.13); color: var(--muted); font-size: clamp(11px, .78vw, 15px); }
+    .interlude-stat b { color: rgb(var(--interlude-rgb)); font-size: clamp(19px, 1.42vw, 29px); font-weight: 600; white-space: nowrap; }
+    .interlude-masthead { position: absolute; z-index: 3; top: 30%; right: 22%; bottom: 30%; left: 22%; display: grid; place-items: center; border-top: 1px solid rgba(255,255,255,.18); border-bottom: 1px solid rgba(255,255,255,.18); color: #fff; text-align: center; pointer-events: none; transition: transform .72s cubic-bezier(.2,.72,.2,1), filter .72s ease, opacity .62s ease; }
+    .interlude-masthead h1 { margin: 0; font-size: clamp(28px, 3vw, 50px); font-weight: 600; line-height: 1.22; letter-spacing: .09em; white-space: nowrap; }
+    .news-interlude.interlude-leaving .interlude-card { opacity: 0; filter: blur(2px); }
+    .news-interlude.interlude-leaving .interlude-card:nth-child(1), .news-interlude.interlude-leaving .interlude-card:nth-child(4) { transform: translateX(-130%) scale(.98); }
+    .news-interlude.interlude-leaving .interlude-card:nth-child(3), .news-interlude.interlude-leaving .interlude-card:nth-child(5) { transform: translateX(130%) scale(.98); }
+    .news-interlude.interlude-leaving .interlude-card:nth-child(2) { transform: translateY(-150%) scale(.98); }
+    .news-interlude.interlude-leaving .interlude-card:nth-child(6) { transform: translateY(150%) scale(.98); }
+    .news-interlude.interlude-leaving .interlude-masthead { opacity: 0; filter: blur(12px); transform: scale(1.25); }
+    @keyframes interlude-card-in { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .chapter-title { position: relative; overflow: hidden; text-align: center; }
+    .chapter-title .page-content { position: fixed; z-index: 1; top: 50%; left: 70%; width: min(900px, 54vw); transform: translate(-50%, calc(-50% + 16px)); }
+    .chapter-title.active .page-content { transform: translate(-50%, -50%); }
+    .chapter-title-image { display: block; width: 100%; height: auto; object-fit: contain; }
+    .chapter-title h2 { font-size: clamp(44px, 7.1vw, 94px); font-weight: 600; line-height: 1.18; letter-spacing: .08em; }
+    .chapter-title p { margin-top: 31px; color: var(--muted); font-size: clamp(18px, 2vw, 25px); line-height: 1.8; }
+
+    .story { max-width: min(1060px, 100%); margin: 0 auto; }
+    .story p { color: var(--white); font-size: clamp(20px, 1.8vw, 26px); line-height: 2.02; letter-spacing: .035em; text-wrap: pretty; word-break: normal; line-break: strict; }
+    .story p + p { margin-top: 24px; }
+    .story.compact { max-width: min(1120px, 100%); }
+    .story.compact p { font-size: clamp(18px, 1.5vw, 22px); line-height: 1.82; }
+    .story.short { text-align: center; max-width: 860px; }
+    .story.short p { font-size: clamp(25px, 3vw, 42px); line-height: 1.75; }
+    .page-03-visual { position: relative; display: grid; place-items: center; overflow: auto; }
+    .page-03-image { display: none; }
+    .page-03-visual .page-content { position: relative; z-index: 2; width: min(1060px, 100%); margin: 0 auto; text-align: center; }
+    .page-03-visual .story.compact p { font-size: clamp(19px, 1.55vw, 23px); line-height: 1.9; }
+    .page-03-plain .story { width: min(1060px, 100%); max-width: min(1060px, 100%); margin: 0 auto; }
+    .page-03-plain .story p { text-align: justify; text-align-last: auto; }
+    .page-19-illustrated { position: relative; overflow: hidden; }
+    .page-19-illustrated .page-content { position: relative; z-index: 1; max-width: min(920px, 66vw); margin-left: clamp(0px, 4vw, 72px); margin-right: auto; }
+    .page-19-illustrated.active .final-copy { opacity: 1 !important; transform: none !important; }
+    .final-copy p { color: var(--white); font-size: clamp(19px, 1.55vw, 23px); line-height: 1.92; letter-spacing: .035em; }
+    .final-copy p + p { margin-top: 25px; }
+    .page-19-ornament { position: absolute; z-index: 0; right: clamp(18px, 3vw, 58px); bottom: clamp(34px, 5vh, 72px); display: block; width: clamp(190px, 22vw, 340px); height: auto; transform: rotate(15deg); transform-origin: center; pointer-events: none; }
+    .page-18-illustrated { position: relative; overflow: hidden; }
+    .page-18-illustrated .page-content { position: relative; z-index: 1; max-width: min(960px, 68vw); margin-right: 0; margin-left: auto; }
+    .page-18-ornament { position: absolute; z-index: 0; left: clamp(18px, 3vw, 56px); bottom: clamp(34px, 5vh, 70px); display: block; width: clamp(220px, 24vw, 350px); height: auto; pointer-events: none; }
+    .final-static-page { display: grid; place-items: center; overflow-y: auto; }
+    .final-static-page .final-static-copy { position: relative; z-index: 1; width: min(1080px, 100%); margin: auto; }
+    .final-static-page.active .final-static-copy { opacity: 1 !important; visibility: visible !important; transform: none !important; }
+    .final-static-copy p { color: var(--white); font-size: clamp(19px, 1.5vw, 23px); line-height: 1.92; letter-spacing: .035em; }
+    .final-static-copy p + p { margin-top: 24px; }
+    .law-page .final-static-copy { width: min(690px, 47vw); margin-right: clamp(0px, 3vw, 52px); margin-left: auto; }
+    .law-book-cover { position: absolute; z-index: 2; top: 50%; left: clamp(38px, 8vw, 150px); display: block; width: min(460px, 35vw); height: auto; transform: translateY(-50%); object-fit: contain; pointer-events: none; }
+
+    .seed-scene { overflow: hidden; }
+    .seed-scene::after { z-index: 20; }
+    .seed-scene .page-content { position: relative; z-index: 4; left: 0; width: min(1000px, 100%); margin-right: auto; margin-left: auto; }
+    .seed-map { position: absolute; z-index: 0; top: 8%; right: 14%; bottom: 13%; left: -5%; opacity: .5; filter: saturate(.68); pointer-events: none; }
+    .seed-particles { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+    .seed-soil { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 19%; background: #17100b; clip-path: polygon(0 24%, 8% 17%, 16% 22%, 25% 10%, 34% 18%, 43% 8%, 53% 20%, 63% 12%, 73% 22%, 83% 9%, 92% 18%, 100% 12%, 100% 100%, 0 100%); pointer-events: none; }
+    .seed-map-ui { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .seed-map-panel { position: absolute; top: 11%; left: 3%; width: min(300px, 25vw); opacity: 0; transform: translateX(-18px); transition: opacity .8s .2s ease, transform .8s .2s ease; }
+    .seed-scene.active .seed-map-panel { opacity: .72; transform: translateX(0); }
+    .seed-map-title { color: var(--white); font-size: 22px; font-weight: 600; letter-spacing: .18em; }
+    .seed-map-subtitle { margin-top: 4px; color: var(--muted); font-size: 11px; letter-spacing: .12em; }
+    .seed-route-cards { display: grid; gap: 9px; margin-top: 16px; }
+    .seed-route-card { padding: 9px 11px; border-left: 2px solid var(--route-color); background: rgba(0,0,0,.62); opacity: 0; transform: translateX(-12px); transition: opacity .6s ease, transform .6s ease; }
+    .seed-scene.active .seed-route-card { opacity: 1; transform: translateX(0); }
+    .seed-scene.active .seed-route-card:nth-child(1) { transition-delay: .45s; }
+    .seed-scene.active .seed-route-card:nth-child(2) { transition-delay: .7s; }
+    .seed-scene.active .seed-route-card:nth-child(3) { transition-delay: .95s; }
+    .seed-route-name { color: var(--white); font-size: 12px; font-weight: 600; letter-spacing: .05em; }
+    .seed-route-desc { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .seed-route-meta { margin-top: 3px; color: rgba(200,189,172,.62); font-size: 9px; letter-spacing: .06em; }
+    .seed-map-legend { position: absolute; right: 3%; bottom: 5%; min-width: 220px; padding: 11px 14px; border: 1px solid var(--line); background: rgba(0,0,0,.68); opacity: 0; transform: translateY(12px); transition: opacity .75s 1s ease, transform .75s 1s ease; }
+    .seed-scene.active .seed-map-legend { opacity: .7; transform: translateY(0); }
+    .exchange-map { position: relative; width: min(1232px, 96.8vw); height: min(1000px, 116vh); overflow: hidden; }
+    .exchange-map .seed-map { inset: 0; opacity: 1; }
+    .exchange-map .seed-map-ui { inset: 0; }
+    .page.active .exchange-map .seed-map-legend { opacity: .7; transform: translateY(0); }
+    .exchange-page .page-content.split { position: relative; grid-template-columns: 70% 30%; gap: 0; }
+    .exchange-page .exchange-map { transform: translateX(-20.5vw); }
+    .exchange-page .data-copy { transform: translateX(5vw); }
+    .exchange-page .data-copy p:nth-of-type(1) { color: #c28c1a; }
+    .exchange-page .data-copy p:nth-of-type(2) { color: #447c7a; }
+    .exchange-page .data-copy p:nth-of-type(3) { color: #b73a2c; }
+    .seed-legend-title { margin-bottom: 7px; color: var(--white); font-size: 11px; letter-spacing: .15em; }
+    .seed-legend-item { display: flex; align-items: center; gap: 7px; margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .seed-legend-line { width: 22px; height: 1px; background: var(--route-color); }
+
+    .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: clamp(46px, 8vw, 130px); }
+    .visual { display: grid; place-items: center; min-height: 350px; }
+    .data-copy { max-width: 540px; }
+    .data-copy h2 { margin-bottom: 27px; font-size: clamp(38px, 5.05vw, 71px); font-weight: 600; line-height: 1.25; letter-spacing: .07em; word-break: keep-all; }
+    .data-copy p { color: var(--muted); font-size: clamp(18px, 1.65vw, 23px); line-height: 1.92; letter-spacing: .025em; text-wrap: pretty; word-break: normal; line-break: strict; }
+    .data-copy p + p { margin-top: 18px; }
+    .data-copy strong { color: var(--gold); font-weight: 600; }
+    .split { gap: clamp(34px, 5vw, 76px); }
+    .split .data-copy h2 { margin-bottom: 18px; font-size: clamp(34px, 4vw, 56px); }
+    .split .data-copy p { font-size: clamp(16px, 1.25vw, 19px); line-height: 1.68; }
+    .split .data-copy p + p { margin-top: 12px; }
+    .inheritor-title { font-size: clamp(26px, 2.6vw, 36px) !important; }
+    .inheritor-title .title-line { white-space: nowrap; }
+
+    .donut-box { position: relative; width: min(440px, 78vw); aspect-ratio: 1; display: grid; place-items: center; }
+    .donut-box svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .donut-track, .donut-minority, .donut-han { fill: none; stroke-width: 18; }
+    .donut-track { stroke: rgba(244,238,226,.13); }
+    .donut-minority { stroke: var(--gold); stroke-dasharray: 0 251.2; transition: stroke-dasharray 1.15s .2s ease; }
+    .donut-han { stroke: var(--copper); stroke-dasharray: 0 251.2; stroke-dashoffset: -111.1; transition: stroke-dasharray 1.15s .2s ease; }
+    .page.active .donut-minority { stroke-dasharray: 111.1 251.2; }
+    .page.active .donut-han { stroke-dasharray: 140.1 251.2; }
+    .donut-value { position: absolute; text-align: center; }
+    .donut-value b { display: block; color: var(--gold); font-size: 58px; font-weight: 600; line-height: .9; }
+    .donut-value span { display: block; margin-top: 10px; color: var(--muted); font-size: 14px; }
+    .legend { display: flex; justify-content: center; gap: 21px; margin-top: 17px; color: var(--muted); font-size: 13px; }
+    .legend i { display: inline-block; width: 9px; height: 9px; margin-right: 7px; background: currentColor; }
+    .type-bubble-panel { width: min(560px, 44vw); }
+    .type-bubble-panel h2 { margin-bottom: 20px; font-size: clamp(34px, 4vw, 58px); font-weight: 600; letter-spacing: .06em; text-align: center; }
+    .type-bubbles { position: relative; width: 100%; height: min(460px, 54vh); overflow: hidden; }
+    .type-bubble { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: var(--size); height: var(--size); padding: 9px; overflow: hidden; border: 1px solid rgba(255,255,255,.3); border-radius: 50%; color: rgba(255,255,255,.9); background: rgba(255,255,255,.035); box-shadow: inset 7px 9px 18px rgba(255,255,255,.08), inset -8px -10px 20px rgba(0,0,0,.16), 0 7px 22px rgba(255,255,255,.035); -webkit-backdrop-filter: blur(14px) saturate(112%); backdrop-filter: blur(14px) saturate(112%); font-family: "阿里巴巴东方大楷", var(--font); font-size: clamp(14px, 1.02vw, 18px); line-height: 1.16; text-align: center; white-space: normal; text-shadow: 0 1px 8px rgba(0,0,0,.68); will-change: transform; }
+    .type-bubble::after { content: ""; position: absolute; top: 12%; left: 18%; width: 34%; height: 18%; border-radius: 50%; background: rgba(255,255,255,.13); filter: blur(6px); transform: rotate(-24deg); pointer-events: none; }
+    .type-source { position: absolute; z-index: 3; right: clamp(24px, 4vw, 62px); bottom: 24px; color: var(--muted); font-size: 12px; letter-spacing: .035em; }
+
+    .motif-grid { display: grid; grid-template-columns: repeat(3, 1fr); width: min(460px, 88vw); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .motif-image { display: block; width: min(460px, 88vw); height: auto; object-fit: contain; }
+    .motif { display: grid; place-items: center; min-height: 120px; padding: 15px 8px; color: var(--gold); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: clamp(17px, 1.9vw, 23px); font-weight: 600; text-align: center; }
+    .motif small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; font-weight: 400; }
+    .page-05-flow { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; overflow: auto; }
+    .page-05-flow-visual, .page-05-flow-copy { position: relative; z-index: 2; }
+    .page-05-flow-visual { position: relative; flex: 0 0 auto; width: 85.5vw; aspect-ratio: 2162 / 869; min-height: 0; overflow: hidden; background: #000; }
+    .page-05-flow-visual img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: center; }
+    .page-05-flow-copy { position: relative; z-index: 1; flex: 0 0 auto; display: block; width: 75vw; margin-top: clamp(18px, 2.6vh, 28px); padding: 0; color: var(--white); background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .page-05-flow-copy h2 { margin-bottom: 18px; font-size: clamp(34px, 4.3vw, 62px); line-height: 1.22; letter-spacing: .08em; }
+    .page-05-flow-copy p { color: rgba(255,255,255,.94); font-size: clamp(17px, 1.45vw, 22px); line-height: 1.72; letter-spacing: .035em; }
+    .page-05-flow-copy p + p { margin-top: 15px; }
+
+    .bar-chart { width: min(520px, 88vw); display: grid; gap: 18px; }
+    .bar-row { display: grid; grid-template-columns: 145px 1fr 28px; align-items: center; gap: 13px; color: var(--white); font-size: 15px; }
+    .bar-row .track { height: 15px; background: rgba(244,238,226,.12); }
+    .bar-row .fill { width: 0; height: 100%; background: var(--gold); transition: width 1.05s .2s ease; }
+    .bar-row:nth-child(2) .fill, .bar-row:nth-child(4) .fill, .bar-row:nth-child(6) .fill { background: var(--copper); }
+    .distribution-map { position: relative; width: min(570px, 47vw); height: min(520px, 59vh); overflow: visible; }
+    .distribution-map-chart, .distribution-map-bars { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .distribution-map-bars { z-index: 2; pointer-events: none; }
+    .distribution-map-bar { position: absolute; display: flex; flex-direction: column; align-items: center; color: var(--white); transform: translateX(-50%); }
+    .distribution-map-value { margin-bottom: 3px; color: var(--white); font-size: 13px; font-weight: 600; opacity: 0; text-shadow: 0 1px 4px var(--black); transition: opacity .55s ease .65s; }
+    .distribution-map-pillar { width: 17px; height: 0; background: var(--bar-color); box-shadow: 0 0 12px color-mix(in srgb, var(--bar-color) 68%, transparent); transition: height 1.35s cubic-bezier(.25,.1,.25,1); }
+    .distribution-map-name { margin-top: 4px; color: var(--white); font-size: 11px; white-space: nowrap; opacity: 0; text-shadow: 0 1px 4px var(--black); transition: opacity .55s ease .85s; }
+    .distribution-map-bar.show .distribution-map-value, .distribution-map-bar.show .distribution-map-name { opacity: 1; }
+    .distribution-page .page-content.split { position: relative; grid-template-columns: 50% 50%; gap: 0; }
+    .distribution-page .visual { position: relative; z-index: 0; overflow: visible; }
+    .distribution-page .distribution-map { width: min(1040px, 68vw); height: min(760px, 80vh); opacity: 1; transform: translateX(-12vw); transform-origin: center; }
+    .distribution-page .data-copy { position: relative; z-index: 2; width: min(430px, 26vw); max-width: none; transform: translateX(7vw); }
+    .page.active .bar-row .fill { width: var(--width); }
+    .bar-row b { color: var(--gold); font-weight: 600; text-align: right; }
+
+    .route-chart { width: min(560px, 88vw); }
+    .route-chart svg { width: 100%; height: auto; overflow: visible; }
+    .route-chart path { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 8 9; animation: route 2.3s linear infinite; }
+    .route-chart path.alt { stroke: var(--copper); }
+    .route-chart circle { fill: var(--black); stroke: var(--gold); stroke-width: 2; }
+    .route-chart text { fill: var(--white); font-family: var(--font); font-size: 17px; }
+    .route-chart .detail { fill: var(--muted); font-size: 12px; }
+    @keyframes route { to { stroke-dashoffset: -68; } }
+
+    .base-chart { width: min(510px, 88vw); min-height: 310px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; align-items: end; padding-top: 16px; border-bottom: 1px solid var(--line); }
+    .base-column { position: relative; height: var(--height); background: var(--gold); transform: scaleY(0); transform-origin: bottom; transition: transform .85s ease; }
+    .base-column:nth-child(2), .base-column:nth-child(4), .base-column:nth-child(6) { background: var(--copper); }
+    .page.active .base-column { transform: scaleY(1); }
+    .base-column:nth-child(2) { transition-delay:.1s; } .base-column:nth-child(3) { transition-delay:.18s; } .base-column:nth-child(4) { transition-delay:.26s; } .base-column:nth-child(5) { transition-delay:.34s; } .base-column:nth-child(6) { transition-delay:.42s; }
+    .base-column span { position: absolute; bottom: -53px; left: 50%; color: var(--muted); font-size: 12px; white-space: nowrap; writing-mode: vertical-rl; transform: translateX(-50%); }
+
+    .transfer-visual { width: min(500px, 88vw); }
+    .transfer-visual .embroidered-handbag { display: block; width: 100%; height: auto; margin: 0 0 12px; object-fit: contain; }
+    .transfer-chart { width: 100%; }
+    .transfer-page .data-copy { width: 95%; max-width: 513px; transform: translateX(2vw); }
+    .transfer-row { display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; padding: 19px 0; border-top: 1px solid var(--line); }
+    .transfer-row:last-child { border-bottom: 1px solid var(--line); }
+    .transfer-row .from { color: var(--muted); font-size: 16px; }
+    .transfer-row .arrow { color: var(--gold); font-size: 22px; text-align: center; }
+    .transfer-row .to { color: var(--white); font-size: 22px; font-weight: 600; }
+
+    .price-chart { width: min(520px, 88vw); }
+    .price-page { background-image: linear-gradient(rgba(0,0,0,.9), rgba(0,0,0,.9)), url("assets/page-12-embroidery-background.jpg"); background-position: center; background-size: cover; background-repeat: no-repeat; }
+    .price-photo-caption { position: absolute; z-index: 5; right: clamp(24px, 4vw, 64px); bottom: clamp(26px, 4vh, 56px); max-width: none; color: rgba(244,238,226,.72); font-size: clamp(12px, 1vw, 15px); line-height: 1.7; letter-spacing: .04em; text-align: right; white-space: nowrap; }
+    .price-row { display: grid; grid-template-columns: 116px 1fr 132px; align-items: center; gap: 14px; min-height: 80px; border-top: 1px solid var(--line); }
+    .price-row:last-child { border-bottom: 1px solid var(--line); }
+    .price-row strong { font-size: 18px; font-weight: 600; }
+    .price-row .track { height: 18px; background: rgba(244,238,226,.12); }
+    .price-row .fill { width: 0; height: 100%; background: var(--copper); transition: width 1.05s .2s ease; }
+    .price-row:nth-child(2) .fill { background: var(--gold); } .price-row:nth-child(3) .fill { background: var(--white); }
+    .page.active .price-row .fill { width: var(--width); }
+    .price-row span { color: var(--gold); font-size: 13px; text-align: right; white-space: nowrap; }
+
+    .academic-matrix-page .page-content.split { grid-template-columns: minmax(0, 1.22fr) minmax(0, .78fr); gap: clamp(28px, 4vw, 62px); }
+    .academic-matrix { width: min(1360px, 106vw); transform: translate(-10vw, -5vh); }
+    .academic-matrix svg, .academic-bars svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .academic-matrix-cell { cursor: pointer; transition: stroke .15s ease, stroke-width .15s ease, filter .15s ease; }
+    .academic-matrix-cell:hover { stroke: rgba(255,255,255,.98); stroke-width: 1; filter: drop-shadow(0 0 3px rgba(255,255,255,.74)); }
+    .academic-copy { max-width: 480px; }
+    .academic-copy p { color: var(--white); font-size: clamp(15px, 1.18vw, 19px); line-height: 1.7; letter-spacing: .025em; }
+    .academic-copy p + p { margin-top: 15px; }
+    .academic-bars-page { overflow: auto; }
+    .academic-bars-layout { width: min(1280px, 86vw); margin: 0 auto; }
+    .academic-bars { width: 100%; }
+    .academic-bars-copy { width: min(1154px, 103%); margin: clamp(20px, 3vh, 34px) auto 0; }
+    .academic-bars-copy p { color: var(--white); font-size: clamp(16px, 1.25vw, 20px); line-height: 1.75; letter-spacing: .03em; }
+    .academic-bars-copy p + p { margin-top: 18px; }
+    .academic-bar-segment { cursor: pointer; transform-box: fill-box; transform-origin: center bottom; transform: scaleY(0); opacity: .25; animation: academic-grow-bar 1s cubic-bezier(.2,.72,.25,1) forwards; transition: stroke .15s ease, stroke-width .15s ease, filter .15s ease; }
+    .academic-bar-segment:hover { stroke: rgba(255,255,255,.98); stroke-width: 1; filter: drop-shadow(0 0 3px rgba(255,255,255,.8)); }
+    .academic-bar-value { pointer-events: none; opacity: 0; animation: academic-show-value .35s ease forwards; }
+    .page:not(.active) .academic-bar-segment, .page:not(.active) .academic-bar-value { animation-play-state: paused; }
+    @keyframes academic-grow-bar { from { transform: scaleY(0); opacity: .25; } to { transform: scaleY(1); opacity: 1; } }
+    @keyframes academic-show-value { from { opacity: 0; } to { opacity: 1; } }
+
+    .people-chart { display: grid; grid-template-columns: repeat(9, 1fr); gap: 9px; width: min(490px, 88vw); }
+    .people-chart-image { display: block; width: min(490px, 88vw); height: auto; object-fit: contain; }
+    .page-15-visual-stack { display: grid; gap: clamp(14px, 2vh, 24px); width: min(588px, 88vw); transform: translateX(5vw); }
+    .page-15-visual-stack img { display: block; width: 100%; height: auto; object-fit: contain; }
+    .inheritor-page .data-copy { width: 88%; max-width: 475px; transform: translateX(5vw); }
+    .person { display: grid; place-items: center; aspect-ratio: 1; clip-path: polygon(50% 0, 100% 30%, 83% 100%, 17% 100%, 0 30%); color: var(--gold); border: 1px solid var(--gold); font-size: 11px; transform: scale(0); transition: transform .35s ease; }
+    .person.male { color: var(--copper); border-color: var(--copper); }
+    .page.active .person { transform: scale(1); }
+    .page.active .person:nth-child(2n) { transition-delay:.05s; } .page.active .person:nth-child(3n) { transition-delay:.12s; } .page.active .person:nth-child(5n) { transition-delay:.18s; }
+
+    .timeline { width: min(980px, 94vw); display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--gold); }
+    .timeline-item { position: relative; padding: 26px 20px 0 0; }
+    .timeline-item::before { content:""; position:absolute; top:-6px; left:0; width:11px; height:11px; background:var(--black); border:1px solid var(--gold); transform:rotate(45deg); }
+    .timeline-item time { color: var(--gold); font-size: 21px; font-weight: 600; }
+    .timeline-item p { margin-top: 13px; color: var(--muted); font-size: 15px; line-height: 1.8; }
+    .timeline-icon { position: absolute; top: 0; left: 18px; display: block; width: 60px; height: 60px; object-fit: contain; }
+    .split .timeline { width: 100%; grid-template-columns: 1fr; border-top: 0; border-left: 1px solid var(--gold); }
+    .split .timeline-item { min-height: 72px; padding: 0 0 12px 88px; }
+    .split .timeline-item::before { top: 5px; left: -6px; }
+    .split .timeline-item p { margin-top: 5px; }
+    .timeline-page .timeline-item { opacity: 0; transform: translateY(16px); }
+    .timeline-page.active .timeline-item { animation: timeline-item-in .58s cubic-bezier(.2,.7,.2,1) forwards; }
+    .timeline-page.active .timeline-item:nth-child(1) { animation-delay: .08s; }
+    .timeline-page.active .timeline-item:nth-child(2) { animation-delay: .24s; }
+    .timeline-page.active .timeline-item:nth-child(3) { animation-delay: .40s; }
+    .timeline-page.active .timeline-item:nth-child(4) { animation-delay: .56s; }
+    .timeline-page.active .timeline-item:nth-child(5) { animation-delay: .72s; }
+    .timeline-page.active .timeline-item:nth-child(6) { animation-delay: .88s; }
+    @keyframes timeline-item-in { to { opacity: 1; transform: translateY(0); } }
+    .timeline-page .timeline { transform: translateX(-5vw); }
+    .timeline-page .data-copy { width: 93%; max-width: 500px; }
+
+    .notes { width: min(900px, 100%); margin: 0 auto; }
+    .notes h2 { margin-bottom: 28px; font-size: clamp(39px, 5vw, 66px); font-weight: 600; text-align: center; }
+    .notes ol { margin: 0; padding-left: 1.7em; color: var(--muted); font-size: 14px; line-height: 1.9; }
+    .notes li + li { margin-top: 7px; }
+    .notes p { color: var(--muted); font-size: clamp(15px, 1.25vw, 18px); line-height: 1.9; letter-spacing: .025em; }
+    .notes p + p { margin-top: 20px; }
+    .notes strong { color: var(--gold); font-weight: 600; }
+
+    @media (max-width: 760px) {
+      .top-nav { top: 14px; right: 15px; }
+      .nav-toggle { width: 40px; height: 40px; }
+      .nav-panel { min-width: 226px; padding: 18px; }
+      .nav-brand { font-size: 13px; }
+      .nav-links { width: auto; }
+      .nav-link { font-size: 12px; letter-spacing: .03em; }
+      .page-number { top: 26px; left: 15px; font-size: 11px; }
+      .page { padding: 88px 24px 76px; align-items: center; }
+      .split { grid-template-columns: 1fr; gap: 27px; }
+      .visual { min-height: 220px; }
+      .data-copy { order: 2; max-width: 100%; text-align: center; }
+      .data-copy h2 { margin-bottom: 17px; font-size: clamp(32px, 9vw, 43px); line-height: 1.35; }
+      .data-copy p { font-size: 17px; line-height: 1.84; }
+      .story p { font-size: 18px; line-height: 1.94; }
+      .story.short p { font-size: 24px; line-height: 1.7; }
+      .page-03-visual .page-content { width: 100%; margin: 0; }
+      .page-05-flow { justify-content: start; padding: 12px 0 72px; }
+      .page-05-flow-visual { width: 85.5vw; }
+      .page-05-flow-copy { width: 75vw; margin-top: 20px; padding: 0; }
+      .page-05-flow-copy h2 { font-size: 35px; text-align: center; }
+      .page-05-flow-copy p { font-size: 16px; line-height: 1.64; }
+      .page-19-illustrated .page-content { max-width: 100%; margin: 0; padding-bottom: 118px; }
+      .law-page .final-static-copy { width: 100%; margin: 0; padding-top: min(44vw, 250px); }
+      .law-book-cover { top: 76px; left: 50%; width: min(250px, 52vw); transform: translateX(-50%); }
+      .page-19-ornament { right: -18px; bottom: 18px; width: 145px; opacity: .82; }
+      .page-18-illustrated .page-content { max-width: 100%; margin: 0; padding-bottom: 105px; }
+      .page-18-ornament { left: -12px; bottom: 16px; width: 150px; opacity: .78; }
+      .cover .page-content { width: min(620px, 88vw); }
+      .chapter-title .page-content { left: 66%; width: 62vw; }
+      .chapter-title h2 { font-size: clamp(37px, 11vw, 57px); }
+      .donut-box { width: min(300px, 72vw); } .donut-value b { font-size: 44px; }
+      .type-bubble-panel { width: min(440px, 88vw); }
+      .type-bubble-panel h2 { margin-bottom: 10px; font-size: 30px; }
+      .type-bubbles { height: min(350px, 41vh); }
+      .type-source { right: 20px; bottom: 58px; left: 20px; font-size: 10px; text-align: right; }
+      .exchange-map { width: min(440px, 87vw); height: min(390px, 43vh); }
+      .exchange-page .page-content.split { grid-template-columns: 1fr; }
+      .exchange-page .exchange-map { transform: none; }
+      .exchange-page .data-copy { transform: none; }
+      .motif-grid, .motif-image { width: min(360px, 86vw); } .motif { min-height: 92px; font-size: 17px; }
+      .bar-chart, .route-chart, .base-chart, .transfer-chart, .price-chart, .people-chart, .people-chart-image, .page-15-visual-stack { width: min(440px, 87vw); }
+      .transfer-visual { width: min(440px, 87vw); }
+      .page-15-visual-stack { transform: none; }
+      .distribution-map { width: min(440px, 87vw); height: min(430px, 45vh); }
+      .distribution-page .page-content.split { grid-template-columns: 1fr; }
+      .distribution-page .distribution-map { width: min(440px, 87vw); height: min(430px, 45vh); transform: none; }
+      .distribution-page .data-copy { width: auto; max-width: 100%; transform: none; }
+      .bar-row { grid-template-columns: 98px 1fr 20px; gap: 8px; font-size: 12px; }
+      .base-chart { min-height: 210px; }
+      .price-row { grid-template-columns: 86px 1fr 110px; gap: 9px; min-height: 64px; } .price-row strong { font-size: 14px; } .price-row span { font-size: 11px; }
+      .academic-matrix-page .page-content.split { grid-template-columns: 1fr; gap: 20px; }
+      .academic-matrix { width: min(580px, 88vw); transform: none; }
+      .academic-copy { max-width: 100%; text-align: left; }
+      .academic-copy p { font-size: 16px; }
+      .academic-bars-layout { width: min(620px, 88vw); }
+      .academic-bars-copy p { font-size: 16px; }
+      .inheritor-page .data-copy, .transfer-page .data-copy, .timeline-page .data-copy { width: auto; max-width: 100%; transform: none; }
+      .timeline-page .timeline { transform: none; }
+      .timeline { grid-template-columns: 1fr; margin-left: 7px; border-top:0; border-left:1px solid var(--gold); }
+      .timeline-item { padding: 0 0 20px 78px; } .timeline-item::before { top:4px; left:-6px; } .timeline-item p { margin-top:7px; font-size: 14px; }
+      .timeline-icon { left: 14px; width: 54px; height: 54px; }
+      .notes ol { font-size: 12px; line-height: 1.75; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms!important; animation-delay:0ms!important; transition-duration:.01ms!important; } }
+    @page { size: 16in 9in; margin: 0; }
+    @media print {
+      html, body { width: 100%; height: auto; overflow: visible; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .reading-progress, .top-nav, .page-number, .next { display: none !important; }
+      .pages { position: static; width: 100%; height: auto; }
+      .page { position: relative !important; inset: auto !important; display: grid !important; width: 16in; height: 9in; overflow: hidden !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; break-after: page; page-break-after: always; }
+      .page:last-child { break-after: auto; page-break-after: auto; }
+      .page-content, .page.active .page-content, .final-static-copy { opacity: 1 !important; visibility: visible !important; transform: none !important; }
+      .cover .page-content, .chapter-title .page-content { position: absolute !important; }
+      .cover-background, .cover-ornament { position: absolute !important; }
+      .reveal-char { opacity: 1 !important; animation: none !important; }
+    }
+/* ===============================
+   修复第8页、第17页16:9高度溢出
+   禁止出现浏览器右侧滚动条
+   =============================== */
+
+/* 第8页：跨地域交流 */
+.exchange-page {
+    overflow: hidden !important;
+}
+
+.exchange-page .page-content.split {
+    height: min(78vh, 720px);
+    transform-origin: center center;
+    transform: scale(
+        min(1, calc(100vh / 900))
+    );
+}
+
+.exchange-page .exchange-map {
+    height: min(68vh, 620px) !important;
+    width: min(1000px, 65vw) !important;
+    transform: translateX(-10vw) scale(.82) !important;
+    transform-origin: center center;
+}
+
+.exchange-page .data-copy {
+    transform: translateX(3vw) scale(.92) !important;
+    transform-origin: center;
+}
+
+
+/* 第17页：学术主题演化柱状图 */
+.academic-bars-page {
+    overflow: hidden !important;
+}
+
+.academic-bars-layout {
+    width: min(1100px, 82vw) !important;
+    max-height: 78vh;
+    transform-origin: center center;
+    transform: scale(
+        min(1, calc(100vh / 920))
+    );
+}
+
+.academic-bars {
+    max-height: 48vh;
+    overflow: hidden;
+}
+
+.academic-bars svg {
+    max-height: 48vh;
+}
+
+.academic-bars-copy {
+    margin-top: 14px !important;
+    width: min(1000px, 90vw) !important;
+}
+
+.academic-bars-copy p {
+    font-size: clamp(14px, 1.1vw, 18px) !important;
+    line-height: 1.55 !important;
+}
+
+
+/* 防止所有页面因为内容微溢出产生滚动条 */
+.page {
+    overflow: hidden !important;
+}
+
+
+/* 小屏幕保持适配 */
+@media(max-width:1200px){
+
+    .exchange-page .page-content.split{
+        transform:scale(.85);
+    }
+
+    .academic-bars-layout{
+        transform:scale(.82);
+    }
+
+}
+  
+    /* layout refinements */
+    .cover .cover-ornament,
+    .chapter-title .cover-ornament { z-index: 20 !important; }
+    .cover .cover-ornament img,
+    .chapter-title .cover-ornament img { z-index: 21 !important; }
+    .exchange-page .exchange-map { width: min(1320px, 103vw); height: min(1040px, 96vh); transform: translateX(-14vw); }
+    .exchange-page .data-copy { transform: translateX(-18vw); }
+    .page-15-visual-stack { width: min(540px, 82vw); }
+    .timeline-page .timeline { transform: translateX(-2vw); }
+    .academic-bars-layout { width: min(1360px, 91vw); }
+    /* latest layout refinements */
+    .academic-bars-layout { width: min(1401px, 93.73vw); }
+    .timeline-page .timeline { transform: translateX(calc(-2vw + 5%)); }
+    .law-book-cover { width: min(598px, 45.5vw); transform: translate(10%, -50%); }
+    /* requested page refinements */
+    .page14-layout .page-15-visual-stack { width: min(513px, 77.9vw); transform: translate(0, -10%); }
+    .page14-layout .data-copy { transform: translateX(5%); }
+    .law-page .final-static-copy { transform: translateX(-30%); }
+    .academic-bars-layout { width: min(1777px, 118.84vw); }
+    .exchange-page .exchange-map { width: min(1584px, 123.6vw); height: min(1248px, 115.2vh); }
+    .char-reveal { display: inline-block; opacity: 0; transform: translateY(.35em); }
+    .char-reveal-page.active .char-reveal { animation: char-reveal-in .42s ease forwards; animation-delay: calc(var(--char-index) * 0.025s); }
+    @keyframes char-reveal-in { to { opacity: 1; transform: translateY(0); } }
+    .page16-layout .academic-matrix { transform: translate(-10vw, calc(-5vh - 15%)); }
+    .page16-layout .academic-copy { transform: translateY(-15%); }
+    .page16-layout .page-content.split { gap: clamp(42px, 5vw, 78px); }
+    .law-page .final-static-copy p { font-size: clamp(15px, 1.18vw, 19px); line-height: 1.7; letter-spacing: .025em; }
+    .law-page .final-static-copy { width: min(620px, 42vw); }
+    .law-page .final-static-copy { margin-right: 5%; margin-left: auto; transform: none; }    .site-loader { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #000; opacity: 1; visibility: visible; transition: opacity .6s ease, visibility 0s linear 0s; }
+    .site-loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s ease, visibility 0s linear .6s; }
+    .site-loader-inner { display: grid; justify-items: center; gap: 18px; color: var(--gold); letter-spacing: .2em; font-size: 13px; }
+    .site-loader-ring { width: 42px; height: 42px; border: 1px solid rgba(217,168,78,.28); border-top-color: var(--gold); border-radius: 50%; animation: site-loader-spin 1s linear infinite; }
+    .site-loader-progress { width: 180px; height: 2px; overflow: hidden; background: rgba(244,238,226,.16); }
+    .site-loader-progress span { display: block; width: 0; height: 100%; background: var(--gold); transition: width .25s ease; }
+    @keyframes site-loader-spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="is-loading">
+  <div class="site-loader" id="site-loader" role="status" aria-live="polite"><div class="site-loader-inner"><div class="site-loader-ring" aria-hidden="true"></div><div id="site-loader-label">正在加载 0%</div><div class="site-loader-progress" aria-hidden="true"><span id="site-loader-progress-bar"></span></div></div></div>
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  <nav class="top-nav" aria-label="章节导航">
+    <button class="nav-toggle" id="nav-toggle" aria-label="打开章节导航" aria-expanded="false" aria-controls="chapter-navigation"><span aria-hidden="true"></span></button>
+    <div class="nav-panel" id="chapter-navigation">
+      <div class="nav-brand">一针一线</div>
+      <div class="nav-links">
+        <button class="nav-link active" data-target="封面">首页</button>
+        <button class="nav-link" data-target="第一章">一粒籽，一种针</button>
+        <button class="nav-link" data-target="第二章">籽实落进土壤</button>
+        <button class="nav-link" data-target="第三章">枝条伸向日常</button>
+        <button class="nav-link" data-target="第四章">谁在等下一季花开</button>
+        <button class="nav-link" data-target="结语">花开不只有一种颜色</button>
+      </div>
+    </div>
+  </nav>
+  <div class="pages" id="pages" aria-live="polite">
+    <section class="page active cover" data-title="封面"><img class="cover-background" src="" alt=""><div class="cover-ornament left" aria-hidden="true"><img src="assets/cover-pattern-left-v2.png" alt=""></div><div class="page-content"><h1>种下石榴籽<br>开出团结花</h1><p class="subtitle">一针一线，怎样绣进共同体？</p></div></section>
+      <section class="page chapter-title" data-title="第一章"><div class="cover-ornament left" aria-hidden="true"><img src="assets/chapter-pattern-01.png" alt=""></div><div class="page-content"><img class="chapter-title-image" src="assets/chapter-title-01.jpg" alt="第一章 一粒籽，一种针"></div></section>
+    <section class="page page-03-plain"><div class="page-content story compact"><p>一根丝线，走了几千年。</p><p>马王堆汉墓打开时，泥土封存了两千多年的丝织品上，针脚依然清晰。那些被时间覆盖的纹样里，藏着已知的这门手艺最早的足迹。</p><p>苗寨的木楼里，绣娘坐在门槛上，指尖推针、抽线，线在布面上游弋。龙纹、凤羽、鱼鳞、花瓣，一个一个从她手底生长出来；彝家的火塘边，又是另一种针脚。羊角纹、火镰纹、几何纹在衣襟上排列开，挑花针起落之间，纹样一格一格铺满整条袖口；水族的绣娘把马尾捻成芯线，沿着纹样轮廓一圈一圈盘绕。线贴着线，密密匝匝，制成的背带厚实坚挺，能托住一个孩子的重量；土族盘绣，两根同色线在指尖配合。一针盘，一针固定，像两个并肩行走的人……法轮、太极、五瓣梅，在腰带和袖口上缓缓转出。</p><p>一颗石榴籽，从这一针开始。</p></div></section>
+      <section class="page page-05-flow"><div class="page-05-flow-visual"><img src="assets/page-05-combined-chart.jpg" alt="各民族刺绣纹样主题与图案统计图"></div><div class="page-05-flow-copy"><h2>不同的纹样世界</h2><div><p>苗绣的龙、凤、鱼鸟、花草；彝绣的羊角纹、火镰纹、几何纹；水族马尾绣的盘绕；土族盘绣的法轮、太极、五瓣梅，各有各的形状。</p><p>这些针法在各自的山寨和村落里绵延了数百年。一条河流的上游和下游，隔着几座山的两个寨子，纹样各具特色，每一根都有自己的走向，每一门都是一粒饱满的籽实，裹着独特的基因，长在自己的枝头。</p></div></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="bar-chart" aria-label="国家级非遗保护单位记录较多的地区"><div class="bar-row"><span>贵州</span><div class="track"><div class="fill" style="--width:100%"></div></div><b>9</b></div><div class="bar-row"><span>新疆维吾尔自治区</span><div class="track"><div class="fill" style="--width:56%"></div></div><b>5</b></div><div class="bar-row"><span>海南</span><div class="track"><div class="fill" style="--width:56%"></div></div><b>5</b></div><div class="bar-row"><span>四川</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>3</b></div><div class="bar-row"><span>内蒙古自治区</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>3</b></div><div class="bar-row"><span>青海</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>3</b></div></div></div><div class="data-copy"><h2>国家级非遗<br>保护单位名单</h2><p>2023年国家级非遗保护单位名单中，明确标注少数民族的刺绣及相关项目共有：41条项目—地区—保护单位记录；对应34个项目标准名称；关联16个少数民族；分布在14个省级地区。</p><p>要给这些散落山野的籽实留下一份完整的档案，并不容易。口传心授的手艺，只活在指尖上，难以留在纸面上。直到国家级非遗名录和保护单位制度建立，那些散落在山川之间的针线，才开始有了可以查找的坐标。</p><p>打开这张地图，我们得以窥见籽实的分布。这些数字背后，是苗寨、彝山、羌寨、土族村落和锡伯族聚居地各自独立生长出来的针法体系。</p></div></div></section>
+
+      <section class="page chapter-title" data-title="第二章"><div class="cover-ornament left" aria-hidden="true"><img src="assets/chapter-pattern-02.png" alt=""></div><div class="page-content"><img class="chapter-title-image" src="assets/chapter-title-02.jpg" alt="第二章 籽实落进土壤"></div></section>
+    <section class="page"><div class="page-content story compact"><p>然后，一些事情开始改变。</p><p>风把籽实吹向不同的方向，有些落进了陌生的土壤。带着纹样的人，开始走向彼此。</p><p>乌鲁木齐的一场研讨会，5名专家和20多名刺绣传承人围坐在一起。桌上铺开的不是论文，是绣片。苗绣的龙纹和维吾尔族刺绣的花卉并排放着，同一条根系上结出的籽实，第一次看见彼此的模样。</p><p>湖南湘绣进入吐鲁番展销空间那天，空气里的湿度不一样，看的人目光也不一样。</p><p>云南楚雄的349件彝绣产品抵达福建莆田，妈祖庙的香火缭绕里，一枚羊角纹的绣片第一次被海风拂过。</p></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="route-chart"><svg viewBox="0 0 540 360" role="img" aria-label="跨地域的交流"><path d="M65 70 C175 24 268 36 450 83"></path><path class="alt" d="M75 210 C190 252 330 165 432 156"></path><path d="M75 303 C240 340 340 278 470 247"></path><circle cx="65" cy="70" r="6"></circle><circle cx="450" cy="83" r="6"></circle><circle cx="75" cy="210" r="6"></circle><circle cx="432" cy="156" r="6"></circle><circle cx="75" cy="303" r="6"></circle><circle cx="470" cy="247" r="6"></circle><text x="20" y="48">19 省市</text><text x="402" y="63">乌鲁木齐</text><text x="35" y="192">湖南</text><text x="390" y="138">吐鲁番</text><text x="21" y="340">云南楚雄</text><text x="430" y="232">福建莆田</text><text class="detail" x="180" y="72">5 名专家和 20 多名传承人</text><text class="detail" x="182" y="220">湘绣进入同一展销空间</text><text class="detail" x="210" y="305">349 件彝绣产品省外展出</text></svg></div></div><div class="data-copy"><h2>跨地域的交流</h2><p>19个省市 → 乌鲁木齐。5名专家和20余名纺织刺绣代表性传承人，共同讨论传统刺绣如何融入现代生活。</p><p>湖南 → 新疆吐鲁番。吐鲁番刺绣、花毡等本地非遗产品，与湘绣、花瑶挑花、土家族织锦等湖南非遗产品进入同一展销空间。</p><p>云南楚雄 → 福建莆田。楚雄彝绣作为首个省外受邀参展项目，在世界妈祖文化论坛主会场开设专展，349件彝绣产品集中亮相。</p></div></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="bar-chart" aria-label="10家少数民族刺绣基地"><div class="bar-row"><span>黎族</span><div class="track"><div class="fill" style="--width:100%"></div></div><b>3</b></div><div class="bar-row"><span>满族</span><div class="track"><div class="fill" style="--width:67%"></div></div><b>2</b></div><div class="bar-row"><span>苗族</span><div class="track"><div class="fill" style="--width:67%"></div></div><b>2</b></div><div class="bar-row"><span>土族</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>1</b></div><div class="bar-row"><span>锡伯族</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>1</b></div><div class="bar-row"><span>哈萨克族</span><div class="track"><div class="fill" style="--width:34%"></div></div><b>1</b></div></div></div><div class="data-copy"><h2>10家少数民族刺绣基地<br>进入生产性保护体系</h2><p>2024年公布的国家级非遗生产性保护示范基地中，与少数民族刺绣和织绣直接相关的机构共有：10家；分布在7个省级地区；涉及6个民族项目群。</p><p>纹样相遇之后，承载它们的织物也开始松动。曾经牢牢固定在衣襟、头帕和背被上的针脚，开始寻找新的落点。一粒籽实要扎根，需要的不只是相遇，还需要持续的水分、温度和可以依附的支架。</p><p>制度开始介入。2024年，国家级非遗生产性保护示范基地中，与少数民族刺绣和织绣直接相关的机构共10家，分布在7个省，涉及6个民族项目群。黎族有3家基地，满族和苗族各2家。保护不再只是记录和展示，而是试着把刺绣放进生产链条里，让它自己产生活下去的动力。</p><p>支架搭起来了，接下来要看根系能不能自己扎深。</p></div></div></section>
+
+      <section class="page chapter-title" data-title="第三章"><div class="cover-ornament left" aria-hidden="true"><img src="assets/chapter-pattern-03.png" alt=""></div><div class="page-content"><img class="chapter-title-image" src="assets/chapter-title-03.jpg" alt="第三章 枝条伸向日常"></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="transfer-visual"><img class="embroidered-handbag" src="assets/embroidered-handbag.png" alt="刺绣手提包"><div class="transfer-chart" aria-label="民族刺绣正在更换载体"><div class="transfer-row"><span class="from">盛装、头帕、背被</span><span class="arrow">→</span><span class="to">手袋、双肩包</span></div><div class="transfer-row"><span class="from">衣襟、腰带、披风</span><span class="arrow">→</span><span class="to">靠垫、桌旗</span></div><div class="transfer-row"><span class="from">背带、绣带、烟口袋</span><span class="arrow">→</span><span class="to">耳饰、胸针、手机挂件</span></div></div></div></div><div class="data-copy"><h2>民族刺绣<br>正在更换载体</h2><p>传统载体包括苗绣的盛装、头帕和背被；彝绣的衣襟、腰带和披风；羌绣的围腰、衣领和鞋面；水族马尾绣的背带和绣带；土族盘绣的服饰、腰带和袖口；锡伯族刺绣的烟口袋和生活用品。</p><p>当代产品则包括手袋、双肩包、靠垫、桌旗、耳饰、胸针和手机挂件。</p><p>载体变了。一件苗绣盛装，原本是一个苗族女性一生最重要的仪式性物品，从少女时期开始绣，绣到出嫁那一天穿上。它的价值不按工时计算，因为工时是一生。但当纹样被缝到手袋、靠垫、手机挂件上，它被纳入了另一种计算方式——市场。籽实破壳，枝条开始伸向陌生的方向。</p></div></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="price-chart" aria-label="一块撒尼绣片的三种价格"><div class="price-row"><strong>手工挂件</strong><div class="track"><div class="fill" style="--width:8%"></div></div><span>5到20元</span></div><div class="price-row"><strong>机绣包袋</strong><div class="track"><div class="fill" style="--width:22%"></div></div><span>约100到200元</span></div><div class="price-row"><strong>手绣作品</strong><div class="track"><div class="fill" style="--width:100%"></div></div><span>600到1000元以上</span></div></div></div><div class="data-copy"><h2>一块撒尼绣片<br>的三种价格</h2><p>手工挂件5到20元，机绣包袋约100到200元，手绣作品600到1000元以上。</p><p>我们在云南石林找到一位撒尼彝族刺绣传承人。她的手边，同一粒籽实长出的枝条，结着三种完全不同的果实。手工挂件5到20元，机绣包袋约100到200元，手绣作品600到1000元以上。机器把价格压下来，让更多人能把撒尼纹样带回家，枝条伸进更多窗口。手工则保留着机器做不出的东西——针脚的深浅、色线的过渡、一个人在一个下午的全部注意力。她说，机器可以满足不同层次的需求，但手工的东西不能丢。</p><p>一根枝条伸向远方，另一根枝条守住土壤。一棵植物要长得健康，两者缺一不可。</p></div></div></section>
+
+    <section class="page chapter-title" data-title="第四章"><div class="cover-ornament left" aria-hidden="true"><img src="assets/chapter-pattern-04.png" alt=""></div><div class="page-content"><img class="chapter-title-image" src="assets/chapter-title-04.jpg" alt="第四章 下一季花开"></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="page-15-visual-stack"><img src="assets/page-15-age-chart.png" alt="11位公开可查少数民族刺绣传承人的年龄段"><img src="assets/page-15-gender-icons.jpg" alt="27条新增少数民族刺绣传承人记录中25位女性、2位男性"></div></div><div class="data-copy"><h2><span class="title-line">第五、六批新增了27条</span><br>少数民族刺绣传承人记录</h2><p>产业在扩张，枝条在生长，传承人名单在更新。第五、六批国家级代表性传承人中，少数民族刺绣新增27条记录。</p><p>然而，在其中公开可查记录的11位少数民族刺绣传承人中，到2026年，他们的年龄都来到了60以上。60岁以下，一个都没有。名录新增的27个人里，25位是女性。</p><p>身体不会永远等下去。名单的增加，不完全等于传承的持续——它没有回答：这些传承人身后，有没有年轻人跟着学？订单是稳定还是偶然？学徒里有几个人能完整掌握全部工序？</p></div></div></section>
+    <section class="page"><div class="page-content split"><div class="visual"><div class="timeline" aria-label="三代撒尼刺绣人的销售路径"><div class="timeline-item"><time>上一代</time><p>绣好一背篓作品，背到昆明、北京售卖。</p></div><div class="timeline-item"><time>1999年前后</time><p>开始在昆明世博会等场景销售刺绣。</p></div><div class="timeline-item"><time>2014年前后</time><p>家庭刺绣经营主体正式成立。</p></div><div class="timeline-item"><time>这一代</time><p>夫妻共同设计产品，去国内外展会。</p></div><div class="timeline-item"><time>现在</time><p>女儿经营网店，学习直播。</p></div></div></div><div class="data-copy"><h2>三代撒尼刺绣人<br>的销售路径</h2><p>上一代：绣好一背篓作品，背到昆明、北京售卖；1999年前后：家人开始在昆明世博会等场景销售刺绣；约2014年：家庭刺绣经营主体正式成立；这一代：夫妻共同设计产品，并参加国内外展会；下一代：女儿经营网店《遗忘的部落》；现在：传承人开始跟随当地助农团队学习直播。</p><p>石林的上一辈绣好一背篓作品，背到昆明、北京去卖。1999年前后，他们开始在昆明世博会上摆摊。2014年前后，家庭经营主体正式成立。这一代，夫妻俩一起设计产品，去国内外的展会。下一代，女儿经营网店。现在，她自己开始跟着助农团队学习直播。一根线的传播半径，从一只背篓，伸展到展会、网店和手机屏幕。</p><p>但会绣，和愿意把刺绣当作长期职业是两个截然不同的事。这之间的缝隙，是这粒籽实能不能在下一季发出新芽的关键。下一代人会不会坐到绣绷前面？答案不在名单里，在订单里，在收入里，在每一针被市场尊重的价格里。石榴籽要一粒一粒地种下去，花才能一季一季地开。</p></div></div></section>
+
+    <section class="page academic-matrix-page"><div class="page-content split"><div class="visual"><div class="academic-matrix"><svg id="academicMatrixSvg" viewBox="0 0 1500 960" preserveAspectRatio="xMidYMid meet" aria-label="民族刺绣研究关键词共现矩阵"></svg></div></div><div class="academic-copy"><p>我们以“‘民族’*‘刺绣’”为关键词，检索了中国知网收录的相关论文。筛选CSSCI和北大核心期刊，按相关度排序，截取前200篇，提取关键词绘制成共现矩阵。</p><p>矩阵显示，在学术讨论中，不同主题之间的关联，主要发生在少数几对固定搭配之间。比如讨论苗族刺绣时，“苗族”和“苗族刺绣”总是同时出现，讨论纹样时，“纹样”和“艺术特征”经常一起被提及。但除此之外，大量主题之间的连线并不紧密——这意味着在学术研究中，不同方向之间的对话还不够多。研究刺绣图案的学者较少引用产业经济的数据，讨论乡村振兴的文章也较少回到纹样本体的知识上去。目前的研究更像一条条独立的跑道，还没有形成一张彼此交织的网络。只有让不同跑道之间产生更多的交叉——让纹样的研究者也关心市场，让产业的讨论回到工艺本身，才能更好推动民族刺绣发展，让文化之花结成致富的产业之果。</p></div></div></section>
+    <section class="page academic-bars-page"><div class="page-content academic-bars-layout"><div class="academic-bars"><svg id="academicThemeSvg" viewBox="0 0 1680 940" preserveAspectRatio="xMidYMid meet" aria-label="2006年至2026年民族刺绣研究主题年度演化柱状图"></svg></div><div class="academic-bars-copy"><p>把这200篇论文按年代展开，研究主题的涨落同样能看出一些问题。“图案审美与文化阐释”是唯一一条贯穿始终的线索，是这门学科最稳定的底盘。但其他主题的波动很大，往往在某个年份集中爆发，随后又快速回落。</p><p>一门成熟的研究领域，不会只依赖一两个热点年份来拉动讨论，而是能让每个方向都有一批持续的耕耘者。民族刺绣的学术版图里，最需要提高的地方，是让那些有价值的方向——比如制作者的知识体系、收益分配、年轻人的传承意愿——有人持续地研究下去，用学术积淀反哺这项民族技艺。</p></div></div></section>
+    <section class="page chapter-title" data-title="结语"><div class="cover-ornament left" aria-hidden="true"><img src="assets/chapter-pattern-05.png" alt=""></div><div class="page-content"><img class="chapter-title-image" src="assets/chapter-title-05.jpg" alt="尾声 百花齐放春满园"></div></section>
+    <section class="page final-static-page"><div class="page-content final-static-copy"><p>2026年3月12日，《中华人民共和国民族团结进步促进法》通过，7月1日起施行。法律写明了保护、转化、教育、产业和传播的框架，为之前走过的每一步提供了制度坐标。</p><p>但法律不会替人穿针。</p><p>针扎进布里，线跟在后面。</p><p>这些年，站在柜台前的人变了。从前是背着背篓的绣娘卖给同村的邻居、邻寨的亲戚。后来是游客停下来，拿起一枚手机挂件，翻过来看针脚。再后来，一个从来没有到过云南的年轻女孩，在网店里下单了一只彝绣手袋，她不一定知道羊角纹的含义，但她觉得好看。</p><p>这种“觉得好看”，本身就有分量。一个纹样被另一片土壤里的人看见、喜欢、花钱买下来、用在自己的生活里。正是这种欣赏，让一针一线有了继续走下去的理由。</p></div></section>
+    <section class="page final-static-page"><div class="page-content final-static-copy"><p>种下石榴籽，是每一根线都记得自己从哪里出发——苗寨的木楼、彝家的火塘、水族的竹楼、土族的院落。一粒籽实有一粒籽实的来处，一种针法有一种针法的基因。而开出团结花，不是把所有纹样染成同一种颜色，是不同针法绣出的花瓣长在同一根枝条上，苗族的龙、彝族的火镰、水族的马尾、锡伯族的牡丹，各有各的形状，却被同一片阳光照着，被同一群人不分民族地喜欢着。</p><p>它需要一些具体的条件：共尊，共赏，共享。也需要一代一代人，坐在绣绷前，接过下一针。</p><p>石榴籽各有形状。团结花，也不只有一种颜色。</p></div></section>
+    <section class="page"><div class="page-content notes"><h2>核心数据来源</h2><ol><li>联合国教育、科学及文化组织官方网站</li><li>中华人民共和国文化和旅游部《第五批国家级非物质文化遗产代表性传承人名单》《第六批国家级非物质文化遗产代表性传承人名单》《2024年国家级非遗生产性保护示范基地名单》</li><li>中国非物质文化遗产网·中国非物质文化遗产数字博物馆《刺绣类非物质文化遗产在民族文化交融中的保护传承》</li><li>《中国民族发展报告（2024）》</li><li>《中国少数民族非物质文化遗产发展报告（2023）》</li><li>中国知网</li><li>综合检索中国新闻网、文旅中国、澎湃新闻、人民日报海外版等权威媒体报道</li><li>实地采访：云南石林彝族（撒尼）刺绣传承人 㱔树珍</li></ol></div></section>
+  </div>
+  <div class="page-number" aria-live="polite"><b id="current-page">01</b> ／ <span id="page-total">01</span></div>
+  <button class="next" id="next" aria-label="下一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 8 7-8"></path></svg></button>
+  <script>
+    const siteLoader = document.getElementById('site-loader');
+    const siteLoaderLabel = document.getElementById('site-loader-label');
+    const siteLoaderBar = document.getElementById('site-loader-progress-bar');
+    const loaderStartedAt = performance.now();
+    const loaderState = { progress: 0, loadedBytes: 0, totalBytes: 0, finished: false };
+    const loaderAssetUrls = [...new Set([...document.documentElement.innerHTML.matchAll(/assets\/[^"'()\s]+\.(?:png|jpg|jpeg|gif|webp|svg|otf|ttf|woff2?)/g)].map(match => new URL(match[0], location.href).href))];
+    const loaderSpeed = () => {
+      const elapsed = Math.max(.1, (performance.now() - loaderStartedAt) / 1000);
+      const connectionSpeed = navigator.connection?.downlink ? navigator.connection.downlink * 125000 : 0;
+      const measuredSpeed = loaderState.loadedBytes / elapsed;
+      return Math.max(connectionSpeed, measuredSpeed, 1);
+    };
+    const updateLoader = (progress, loadedBytes = loaderState.loadedBytes, totalBytes = loaderState.totalBytes) => {
+      loaderState.progress = Math.min(100, Math.max(loaderState.progress, progress));
+      loaderState.loadedBytes = Math.max(loaderState.loadedBytes, loadedBytes);
+      loaderState.totalBytes = Math.max(loaderState.totalBytes, totalBytes);
+      const remainingBytes = Math.max(0, loaderState.totalBytes - loaderState.loadedBytes);
+      const remainingSeconds = remainingBytes ? Math.ceil(remainingBytes / loaderSpeed()) : Math.ceil((100 - loaderState.progress) / 10);
+      const speedMbps = (loaderSpeed() * 8 / 1000000).toFixed(1);
+      const eta = remainingSeconds <= 1 ? '即将完成' : `预计还需 ${remainingSeconds} 秒`;
+      if (siteLoaderLabel) siteLoaderLabel.textContent = `正在加载 ${Math.round(loaderState.progress)}% · ${speedMbps} Mbps · ${eta}`;
+      if (siteLoaderBar) siteLoaderBar.style.width = `${loaderState.progress}%`;
+    };
+    const getResourceSize = async url => {
+      try {
+        const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+        const size = Number(response.headers.get('content-length'));
+        return Number.isFinite(size) && size > 0 ? size : 0;
+      } catch { return 0; }
+    };
+    const waitForImage = image => new Promise(resolve => {
+      const done = async () => {
+        try { await image.decode?.(); } catch {}
+        resolve();
+      };
+      if (image.complete) done();
+      else {
+        image.addEventListener('load', done, { once: true });
+        image.addEventListener('error', done, { once: true });
+        window.setTimeout(done, 15000);
+      }
+    });
+    const waitForWindowLoad = new Promise(resolve => {
+      if (document.readyState === 'complete') resolve();
+      else window.addEventListener('load', resolve, { once: true });
+    });
+    const waitForPaint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const finishLoading = async () => {
+      if (loaderState.finished) return;
+      updateLoader(1);
+      const visibleImages = [...document.images];
+      const preloadImages = loaderAssetUrls
+        .filter(url => !visibleImages.some(image => image.currentSrc === url || image.src === url))
+        .map(url => { const image = new Image(); image.src = url; return image; });
+      const allImages = [...visibleImages, ...preloadImages];
+      const sizes = await Promise.all(loaderAssetUrls.map(getResourceSize));
+      loaderState.totalBytes = sizes.reduce((sum, size) => sum + size, 0);
+      if (!loaderState.totalBytes) loaderState.totalBytes = allImages.length * 100000;
+      const imageStep = 70 / Math.max(1, allImages.length);
+      await Promise.all(allImages.map(async image => {
+        await waitForImage(image);
+        const entry = performance.getEntriesByName(image.currentSrc || image.src).at(-1);
+        const loaded = entry?.encodedBodySize || entry?.transferSize || loaderState.totalBytes / allImages.length;
+        updateLoader(Math.min(70, loaderState.progress + imageStep), loaderState.loadedBytes + loaded);
+      }));
+      updateLoader(70);
+      await Promise.race([document.fonts?.ready || Promise.resolve(), new Promise(resolve => window.setTimeout(resolve, 15000))]);
+      updateLoader(82);
+      await Promise.race([waitForWindowLoad, new Promise(resolve => window.setTimeout(resolve, 15000))]);
+      updateLoader(92);
+      await waitForPaint();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      loaderState.finished = true;
+      updateLoader(100, loaderState.totalBytes, loaderState.totalBytes);
+      document.body.classList.remove('is-loading');
+      siteLoader?.classList.add('is-done');
+      window.setTimeout(() => siteLoader?.remove(), 700);
+    };
+    finishLoading();    const pages = [...document.querySelectorAll('.page')];    const charRevealPages = [pages[2], pages[19]].filter(Boolean);
+    charRevealPages.forEach(page => {
+      page.classList.add('char-reveal-page');
+      const root = page.querySelector('.page-content');
+      if (!root) return;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+      let charIndex = 0;
+      textNodes.forEach(node => {
+        if (!node.nodeValue.trim()) return;
+        const fragment = document.createDocumentFragment();
+        [...node.nodeValue].forEach(char => {
+          const span = document.createElement('span');
+          span.className = 'char-reveal';
+          span.textContent = char;
+          span.style.setProperty('--char-index', charIndex++);
+          fragment.append(span);
+        });
+        node.parentNode.replaceChild(fragment, node);
+      });
+    });
+    pages[10]?.classList.add('transfer-page');
+    const pricePage = pages[11];
+    pricePage?.classList.add('price-page');
+    if (pricePage) {
+      const pricePhotoCaption = document.createElement('p');
+      pricePhotoCaption.className = 'price-photo-caption';
+      pricePhotoCaption.textContent = '*图片为实地采访时拍摄 云南石林彝族（撒尼）刺绣传承人 㱔树珍介绍不同绣片';
+      pricePage.append(pricePhotoCaption);
+    }
+    pages[13]?.classList.add('page14-layout');
+    pages[15]?.classList.add('page16-layout');
+    pages[14]?.classList.add('timeline-page');
+    const lawPage = pages[18];
+    lawPage?.classList.add('law-page');
+    if (lawPage) {
+      const lawBookCover = document.createElement('img');
+      lawBookCover.className = 'law-book-cover';
+      lawBookCover.src = 'assets/law-book-cover.png';
+      lawBookCover.alt = '《中华人民共和国民族团结进步促进法》立法文件';
+      lawPage.prepend(lawBookCover);
+    }
+    const nextButton = document.getElementById('next');
+    const currentPage = document.getElementById('current-page');
+    const totalPage = document.getElementById('page-total');
+    const progressBar = document.getElementById('reading-progress');
+    const topNav = document.querySelector('.top-nav');
+    const navToggle = document.getElementById('nav-toggle');
+    const navButtons = [...document.querySelectorAll('.nav-link')];
+    pages.forEach((page, index) => page.classList.toggle('active', index === 0));
+    let pageIndex = 0;
+    let locked = false;
+    let touchStartY = 0;
+    const inheritorPage = pages[13];
+    inheritorPage.classList.add('inheritor-page');
+    const inheritorCopy = inheritorPage.querySelector('.data-copy');
+    const inheritorTitle = inheritorCopy.querySelector('h2');
+    inheritorTitle.classList.add('inheritor-title');
+    const timeline = pages[14].querySelector('.timeline');
+    const timelineStages = [
+      ['上一代', '绣好一背篓作品，背到昆明、北京售卖。', 'assets/timeline/01-previous-generation.jpg'],
+      ['1999年前后', '开始在昆明世博会等场景销售刺绣。', 'assets/timeline/02-1999-expo.jpg'],
+      ['约2014年', '家庭刺绣经营主体正式成立。', 'assets/timeline/03-2014-business.jpg'],
+      ['这一代', '夫妻共同设计产品，去国内外展会。', 'assets/timeline/04-current-generation.jpg'],
+      ['下一代', '女儿经营网店《遗忘的部落》。', 'assets/timeline/05-next-generation.jpg'],
+      ['现在', '跟随当地助农团队学习直播。', 'assets/timeline/06-live-streaming.jpg']
+    ];
+    timeline.innerHTML = timelineStages.map(([time, copy, icon]) => `<div class="timeline-item"><img class="timeline-icon" src="${icon}" alt=""><time>${time}</time><p>${copy}</p></div>`).join('');
+    const timelineCopy = pages[14].querySelector('.data-copy');
+    timelineCopy.querySelector('p')?.remove();
+    const distributionPage = pages[4];
+    distributionPage.classList.add('distribution-page');
+    const distributionCopy = distributionPage.querySelector('.data-copy');
+    distributionCopy.querySelector('p').textContent = '按地区统计，国家级非遗保护单位名单中明确标注少数民族刺绣及相关项目共28条项目—地区—保护单位记录，分布在9个省级地区。';
+    const distributionData = [
+      { name: '贵州', label: '贵州省', value: 9, coords: [106.71, 26.57] },
+      { name: '新疆', label: '新疆维吾尔自治区', value: 5, coords: [87.62, 43.79] },
+      { name: '黑龙江', label: '黑龙江省', value: 3, coords: [126.54, 45.80] },
+      { name: '四川', label: '四川省', value: 3, coords: [104.06, 30.67] },
+      { name: '内蒙古', label: '内蒙古自治区', value: 2, coords: [111.67, 40.82] },
+      { name: '辽宁', label: '辽宁省', value: 2, coords: [123.43, 41.80] },
+      { name: '青海', label: '青海省', value: 2, coords: [101.78, 36.62] },
+      { name: '湖南', label: '湖南省', value: 1, coords: [112.93, 28.23] },
+      { name: '吉林', label: '吉林省', value: 1, coords: [125.32, 43.90] }
+    ];
+    const distributionShell = document.createElement('div');
+    distributionShell.className = 'distribution-map';
+    distributionShell.innerHTML = '<div class="distribution-map-chart" aria-hidden="true"></div><div class="distribution-map-bars" aria-hidden="true"></div>';
+    distributionPage.querySelector('.visual .bar-chart').replaceWith(distributionShell);
+    const distributionChartElement = distributionShell.querySelector('.distribution-map-chart');
+    const distributionBars = distributionShell.querySelector('.distribution-map-bars');
+    let distributionChart = null;
+    let distributionTimers = [];
+    function initDistributionMap() {
+      if (!window.echarts || !window.echarts.getMap('china')) return;
+      distributionChart = window.echarts.init(distributionChartElement, null, { renderer: 'canvas' });
+      distributionChart.setOption({
+        animationDuration: 900,
+        backgroundColor: 'transparent',
+        geo: {
+          map: 'china',
+          silent: true,
+          roam: false,
+          zoom: 1.08,
+          center: [105, 36],
+          label: { show: false },
+          itemStyle: { areaColor: 'rgba(34,36,38,.9)', borderColor: 'rgba(244,238,226,.22)', borderWidth: .8 },
+          emphasis: { disabled: true, itemStyle: { areaColor: 'rgba(194,140,26,.14)' } },
+          regions: distributionData.map(item => ({
+            name: item.name,
+            itemStyle: { areaColor: 'rgba(194,140,26,.1)', borderColor: 'rgba(217,168,78,.48)', borderWidth: 1 }
+          }))
+        },
+        series: []
+      });
+    }
+    function growDistributionMapBars() {
+      if (!distributionChart) return;
+      distributionTimers.forEach(timer => clearTimeout(timer));
+      distributionTimers = [];
+      distributionChart.resize();
+      distributionBars.innerHTML = '';
+      const maximumHeight = Math.min(135, distributionShell.clientHeight * .29);
+      distributionData.forEach((item, index) => {
+        const pixel = distributionChart.convertToPixel('geo', item.coords);
+        if (!pixel) return;
+        const height = item.value / 9 * maximumHeight;
+        const group = document.createElement('div');
+        group.className = 'distribution-map-bar';
+        group.style.left = `${pixel[0]}px`;
+        group.style.top = `${pixel[1] - height - 17}px`;
+        group.style.setProperty('--bar-color', item.value >= 5 ? '#c28c1a' : '#447c7a');
+        group.innerHTML = `<div class="distribution-map-value">${item.value}</div><div class="distribution-map-pillar"></div><div class="distribution-map-name">${item.label}</div>`;
+        distributionBars.append(group);
+        const timer = setTimeout(() => {
+          group.classList.add('show');
+          group.querySelector('.distribution-map-pillar').style.height = `${height}px`;
+        }, 160 + index * 130);
+        distributionTimers.push(timer);
+      });
+    }
+    initDistributionMap();
+    const seedPage = pages[6];
+    seedPage.classList.add('seed-scene');
+    const exchangePage = pages[7];
+    exchangePage.classList.add('exchange-page');
+    const exchangeMap = document.createElement('div');
+    exchangeMap.className = 'exchange-map';
+    exchangePage.querySelector('.visual .route-chart')?.replaceWith(exchangeMap);
+    const seedMap = document.createElement('div');
+    seedMap.className = 'seed-map';
+    seedMap.setAttribute('aria-hidden', 'true');
+    const seedMapUi = document.createElement('div');
+    seedMapUi.className = 'seed-map-ui';
+    seedMapUi.setAttribute('aria-hidden', 'true');
+    seedMapUi.innerHTML = `
+      <div class="seed-map-panel">
+        <div class="seed-map-title">跨地域的交流</div>
+        <div class="seed-map-subtitle">少数民族刺绣非遗项目全国联动</div>
+        <div class="seed-route-cards">
+          <div class="seed-route-card" style="--route-color:#c28c1a"><div class="seed-route-name">十九省市 → 乌鲁木齐</div><div class="seed-route-desc">5名专家与20多名刺绣代表性传承人共同研讨传统刺绣如何进入现代生活。</div><div class="seed-route-meta">汇聚天山 · 共话传承</div></div>
+          <div class="seed-route-card" style="--route-color:#447c7a"><div class="seed-route-name">湖南 → 新疆吐鲁番</div><div class="seed-route-desc">维吾尔族刺绣、花毡与湘绣等湖南非遗项目进入同一展销空间。</div><div class="seed-route-meta">丝路湘绣 · 同台竞艳</div></div>
+          <div class="seed-route-card" style="--route-color:#b73a2c"><div class="seed-route-name">云南楚雄 → 福建莆田</div><div class="seed-route-desc">349件彝绣产品首次在世界妈祖文化论坛开设省外专展。</div><div class="seed-route-meta">彝绣出海 · 妈祖见证</div></div>
+        </div>
+      </div>
+      <div class="seed-map-legend">
+        <div class="seed-legend-title">交流线路</div>
+        <div class="seed-legend-item" style="--route-color:#c28c1a"><span class="seed-legend-line"></span><span>十九省市汇聚乌鲁木齐</span></div>
+        <div class="seed-legend-item" style="--route-color:#447c7a"><span class="seed-legend-line"></span><span>湖南 ↔ 吐鲁番</span></div>
+        <div class="seed-legend-item" style="--route-color:#b73a2c"><span class="seed-legend-line"></span><span>楚雄 → 莆田</span></div>
+      </div>`;
+    seedMapUi.querySelector('.seed-map-panel')?.remove();
+    seedMapUi.querySelector('.seed-map-legend')?.remove();
+    const seedCanvas = document.createElement('canvas');
+    seedCanvas.className = 'seed-particles';
+    seedCanvas.setAttribute('aria-hidden', 'true');
+    const seedSoil = document.createElement('div');
+    seedSoil.className = 'seed-soil';
+    seedSoil.setAttribute('aria-hidden', 'true');
+    exchangeMap.append(seedMap, seedMapUi);
+    seedPage.prepend(seedCanvas, seedSoil);
+    const seedContext = seedCanvas.getContext('2d');
+    const seedParticles = [];
+    let seedMapChart = null;
+    let seedWidth = 0;
+    let seedHeight = 0;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function resetSeedParticle(particle, initial = false) {
+      particle.x = initial ? Math.random() * seedWidth : -20 - Math.random() * seedWidth * .25;
+      particle.y = initial ? Math.random() * seedHeight * .78 : -10 - Math.random() * seedHeight * .18;
+      particle.size = .8 + Math.random() * 2.2;
+      particle.speedX = .35 + Math.random() * 1.05;
+      particle.speedY = .28 + Math.random() * .68;
+      particle.phase = Math.random() * Math.PI * 2;
+      particle.pulse = .7 + Math.random() * 1.5;
+    }
+    function resizeSeedScene() {
+      const bounds = seedPage.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      seedWidth = bounds.width;
+      seedHeight = bounds.height;
+      seedCanvas.width = Math.max(1, Math.round(seedWidth * ratio));
+      seedCanvas.height = Math.max(1, Math.round(seedHeight * ratio));
+      seedContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+      seedMapChart?.resize();
+      seedParticles.length = 0;
+      for (let i = 0; i < 92; i += 1) {
+        const particle = {};
+        resetSeedParticle(particle, true);
+        seedParticles.push(particle);
+      }
+    }
+    async function initSeedMap() {
+      if (!window.echarts || !window.echarts.getMap('china')) {
+        seedMap.hidden = true;
+        return;
+      }
+      try {
+        const coordinates = {
+          wulumuqi: [87.62, 43.79], tulufan: [89.19, 42.95], hunan: [112.98, 28.21], chuxiong: [101.55, 25.04], putian: [119.01, 25.45],
+          provinces: [[116.40,39.90],[121.47,31.23],[113.26,23.13],[118.78,32.06],[120.15,30.28],[117.00,36.67],[113.62,34.75],[104.06,30.67],[114.30,30.59],[108.93,34.34],[103.83,36.06],[101.78,36.62],[123.43,41.80],[125.32,43.88],[126.54,45.80],[114.51,38.04],[112.55,37.87],[117.28,31.86],[115.85,28.68]]
+        };
+        const gatheringLines = coordinates.provinces.map(point => ({ coords: [point, coordinates.wulumuqi] }));
+        seedMapChart = window.echarts.init(seedMap, null, { renderer: 'canvas' });
+        seedMapChart.setOption({
+          backgroundColor: 'transparent',
+          geo: {
+            map: 'china',
+            silent: true,
+            roam: false,
+            zoom: 1.08,
+            center: [105, 36],
+            label: { show: false },
+            itemStyle: {
+              areaColor: 'rgba(58, 52, 43, .78)',
+              borderColor: 'rgba(217, 168, 78, .7)',
+              borderWidth: .9
+            },
+            emphasis: {
+              disabled: true,
+              itemStyle: { areaColor: 'rgba(58, 52, 43, .78)' }
+            }
+          },
+          series: [
+            {
+              type: 'lines', coordinateSystem: 'geo', silent: true, zlevel: 1,
+              effect: { show: !reducedMotion.matches, period: 5, trailLength: .22, symbol: 'circle', symbolSize: 2.5, color: '#d9a84e' },
+              lineStyle: { color: '#c28c1a', width: .65, opacity: .44, curveness: .2, type: 'dashed' },
+              data: gatheringLines
+            },
+            {
+              type: 'lines', coordinateSystem: 'geo', silent: true, zlevel: 2,
+              effect: { show: !reducedMotion.matches, period: 3.5, trailLength: .3, symbol: 'circle', symbolSize: 3.5, color: '#65aaa6' },
+              lineStyle: { color: '#447c7a', width: 1, opacity: .72, curveness: .25, type: 'dashed' },
+              data: [{ coords: [coordinates.hunan, coordinates.tulufan] }]
+            },
+            {
+              type: 'lines', coordinateSystem: 'geo', silent: true, zlevel: 2,
+              effect: { show: !reducedMotion.matches, period: 4, trailLength: .3, symbol: 'circle', symbolSize: 3.5, color: '#df6559' },
+              lineStyle: { color: '#b73a2c', width: 1, opacity: .72, curveness: .3, type: 'dashed' },
+              data: [{ coords: [coordinates.chuxiong, coordinates.putian] }]
+            },
+            {
+              type: 'effectScatter', coordinateSystem: 'geo', silent: true, zlevel: 3,
+              rippleEffect: { brushType: 'stroke', scale: 2.5, period: 4 },
+              symbolSize: value => value[2] > 10 ? 10 : 5,
+              label: { show: false },
+              itemStyle: { opacity: .86 },
+              data: [
+                { value: [...coordinates.wulumuqi, 19], itemStyle: { color: '#c28c1a' } },
+                { value: [...coordinates.tulufan, 1], itemStyle: { color: '#447c7a' } },
+                { value: [...coordinates.hunan, 1], itemStyle: { color: '#447c7a' } },
+                { value: [...coordinates.chuxiong, 1], itemStyle: { color: '#b73a2c' } },
+                { value: [...coordinates.putian, 349], itemStyle: { color: '#b73a2c' } }
+              ]
+            }
+          ]
+        });
+      } catch (error) {
+        seedMap.hidden = true;
+      }
+    }
+    function drawSeedScene(time) {
+      if (seedPage.classList.contains('active')) {
+        seedContext.clearRect(0, 0, seedWidth, seedHeight);
+        seedParticles.forEach(particle => {
+          if (!reducedMotion.matches) {
+            particle.x += particle.speedX + Math.sin(time * .0012 + particle.phase) * .32;
+            particle.y += particle.speedY + Math.cos(time * .001 + particle.phase) * .12;
+          }
+          if (particle.y > seedHeight * .84 || particle.x > seedWidth + 30) resetSeedParticle(particle);
+          const shimmer = .42 + (Math.sin(time * .002 * particle.pulse + particle.phase) + 1) * .24;
+          seedContext.beginPath();
+          seedContext.globalAlpha = shimmer;
+          seedContext.fillStyle = '#e5b85a';
+          seedContext.shadowColor = '#efc873';
+          seedContext.shadowBlur = particle.size * 7;
+          seedContext.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          seedContext.fill();
+        });
+        seedContext.globalAlpha = 1;
+        seedContext.shadowBlur = 0;
+      }
+      requestAnimationFrame(drawSeedScene);
+    }
+    resizeSeedScene();
+    initSeedMap();
+    window.addEventListener('resize', resizeSeedScene);
+    window.addEventListener('resize', () => {
+      distributionChart?.resize();
+      if (pageIndex === 4) requestAnimationFrame(growDistributionMapBars);
+    });
+    requestAnimationFrame(drawSeedScene);
+    const typeBubbleStage = document.querySelector('.type-bubbles');
+    const typeBubbleElements = [...document.querySelectorAll('.type-bubble')];
+    let typeBubbleWidth = 0;
+    let typeBubbleHeight = 0;
+    const typeBubbleBodies = typeBubbleElements.map((element, index) => ({
+      element,
+      size: 66 + (index % 4) * 9,
+      x: 0,
+      y: 0,
+      vx: (index % 2 ? 1 : -1) * (.12 + (index % 5) * .022),
+      vy: (index % 3 ? 1 : -1) * (.1 + (index % 4) * .02),
+      phase: index * 1.71
+    }));
+    function resetTypeBubbles() {
+      if (!typeBubbleStage) return;
+      const bounds = typeBubbleStage.getBoundingClientRect();
+      typeBubbleWidth = bounds.width;
+      typeBubbleHeight = bounds.height;
+      const columns = 5;
+      typeBubbleBodies.forEach((bubble, index) => {
+        bubble.size = Math.min(bubble.size, Math.max(56, typeBubbleWidth / 5.6));
+        bubble.element.style.setProperty('--size', `${bubble.size}px`);
+        const column = index % columns;
+        const row = Math.floor(index / columns);
+        bubble.x = Math.min(typeBubbleWidth - bubble.size, 8 + column * ((typeBubbleWidth - 70) / columns) + (row % 2) * 8);
+        bubble.y = Math.min(typeBubbleHeight - bubble.size, 8 + row * ((typeBubbleHeight - 70) / 4));
+      });
+    }
+    function moveTypeBubbles(time) {
+      if (pages[4]?.classList.contains('active') && typeBubbleStage) {
+        const bounds = typeBubbleStage.getBoundingClientRect();
+        if (Math.abs(bounds.width - typeBubbleWidth) > 2 || Math.abs(bounds.height - typeBubbleHeight) > 2) resetTypeBubbles();
+        if (!reducedMotion.matches) {
+          typeBubbleBodies.forEach((bubble, index) => {
+            bubble.vx += Math.sin(time * .00055 + bubble.phase) * .00072;
+            bubble.vy += Math.cos(time * .00068 + bubble.phase * 1.3) * .00064;
+            bubble.x += bubble.vx;
+            bubble.y += bubble.vy;
+            if (bubble.x <= 0 || bubble.x + bubble.size >= typeBubbleWidth) {
+              bubble.x = Math.max(0, Math.min(typeBubbleWidth - bubble.size, bubble.x));
+              bubble.vx *= -1;
+            }
+            if (bubble.y <= 0 || bubble.y + bubble.size >= typeBubbleHeight) {
+              bubble.y = Math.max(0, Math.min(typeBubbleHeight - bubble.size, bubble.y));
+              bubble.vy *= -1;
+            }
+          });
+          for (let i = 0; i < typeBubbleBodies.length; i += 1) {
+            for (let j = i + 1; j < typeBubbleBodies.length; j += 1) {
+              const a = typeBubbleBodies[i];
+              const b = typeBubbleBodies[j];
+              const dx = b.x + b.size / 2 - (a.x + a.size / 2);
+              const dy = b.y + b.size / 2 - (a.y + a.size / 2);
+              const distance = Math.hypot(dx, dy) || .01;
+              const minimum = (a.size + b.size) / 2;
+              if (distance < minimum) {
+                const nx = dx / distance;
+                const ny = dy / distance;
+                const overlap = (minimum - distance) / 2;
+                a.x -= nx * overlap;
+                a.y -= ny * overlap;
+                b.x += nx * overlap;
+                b.y += ny * overlap;
+                const relative = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+                if (relative < 0) {
+                  a.vx += relative * nx;
+                  a.vy += relative * ny;
+                  b.vx -= relative * nx;
+                  b.vy -= relative * ny;
+                }
+              }
+            }
+          }
+        }
+        typeBubbleBodies.forEach(bubble => {
+          bubble.element.style.transform = `translate3d(${bubble.x}px, ${bubble.y}px, 0)`;
+        });
+      }
+      requestAnimationFrame(moveTypeBubbles);
+    }
+    resetTypeBubbles();
+    requestAnimationFrame(moveTypeBubbles);
+    const academicSvgEl = (tag, attrs = {}, text = null) => {
+      const element = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
+      if (text !== null) element.textContent = text;
+      return element;
+    };
+    const academicKeywords = ['刺绣','苗族刺绣','苗族','少数民族','羌族','传承','彝族','非物质文化遗产','贵州','文化内涵','民族服饰','满族','纹样','艺术特征','设计','刺绣图案','发展','图案','民族文化','民间工艺'];
+    const academicRawMatrix = [[35,0,6,3,4,1,3,2,0,0,1,1,4,2,0,0,0,3,0,0],[0,12,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0],[6,0,10,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],[3,0,1,9,0,0,1,1,2,0,0,0,0,0,0,0,0,0,0,1],[4,0,0,0,9,0,0,0,0,1,0,0,0,0,1,2,0,0,0,0],[1,0,0,0,0,8,0,1,0,0,0,0,0,0,0,0,1,0,0,1],[3,0,0,1,0,0,8,0,0,0,0,0,1,0,1,0,0,0,1,0],[2,0,0,1,0,1,0,8,0,0,1,1,0,0,0,0,0,0,0,0],[0,1,0,2,0,0,0,0,7,0,0,0,0,0,0,0,1,0,0,0],[0,0,0,0,1,0,0,0,0,6,0,0,0,1,0,1,0,1,0,0],[1,0,0,0,0,0,0,1,0,0,5,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,1,0,0,0,5,0,1,0,0,0,1,0,0],[4,0,0,0,0,0,1,0,0,0,0,0,5,0,0,0,1,0,0,0],[2,0,0,0,0,0,0,0,0,1,0,1,0,5,0,0,0,0,0,0],[0,0,1,0,1,0,1,0,0,0,0,0,0,0,5,0,1,0,1,0],[0,0,0,0,2,0,0,0,0,1,0,0,0,0,0,4,0,0,0,0],[0,0,0,0,0,1,0,0,1,0,0,0,1,0,1,0,4,0,0,0],[3,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,4,0,0],[0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,4,0],[0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4]];
+    function drawAcademicMatrix() {
+      const svg = document.getElementById('academicMatrixSvg');
+      if (!svg) return;
+      svg.innerHTML = '';
+      const colors = ['rgba(80,18,43,.16)','#512039','#73304f','#974263','#bd587d','#df739d','#ff95c3'];
+      const left = 230, top = 220, cell = 32, gap = 2, count = academicKeywords.length, gridSize = cell * count, legendX = left + gridSize + 70, legendY = top + gridSize - 220;
+      const color = value => colors[Math.max(0, Math.min(6, value))];
+      academicKeywords.forEach((keyword, index) => {
+        const x = left + index * cell + cell / 2;
+        svg.append(academicSvgEl('text', { x, y: top - 6, fill: '#ead9b5', 'font-size': '14', 'text-anchor': 'start', 'dominant-baseline': 'middle', transform: `rotate(-90 ${x} ${top - 6})` }, keyword));
+        svg.append(academicSvgEl('text', { x: left - 16, y: top + index * cell + cell * .68, fill: '#ead9b5', 'font-size': '14', 'text-anchor': 'end' }, keyword));
+      });
+      for (let row = 0; row < count; row += 1) for (let column = 0; column < count; column += 1) {
+        const value = row === column ? 6 : Math.max(academicRawMatrix[row][column] || 0, academicRawMatrix[column][row] || 0);
+        const rect = academicSvgEl('rect', { x: left + column * cell + gap / 2, y: top + row * cell + gap / 2, width: cell - gap, height: cell - gap, fill: color(value), class: 'academic-matrix-cell' });
+        rect.append(academicSvgEl('title', {}, row === column ? `${academicKeywords[row]}：对角线最高频级` : `${academicKeywords[row]} × ${academicKeywords[column]}：共现${value}次`));
+        svg.append(rect);
+      }
+      svg.append(academicSvgEl('text', { x: legendX, y: legendY - 28, fill: '#ead9b5', 'font-size': '16' }, '共现次数'));
+      [6,5,4,3,2,1,0].forEach((value, index) => {
+        const y = legendY + index * 36;
+        const swatch = academicSvgEl('rect', { x: legendX, y: y - 17, width: 42, height: 24, fill: color(value), class: 'academic-matrix-cell' });
+        swatch.append(academicSvgEl('title', {}, `${value}次`));
+        svg.append(swatch, academicSvgEl('text', { x: legendX + 58, y, fill: '#ead9b5', 'font-size': '14', 'dominant-baseline': 'middle' }, `${value}次`));
+      });
+    }
+    const academicThemes = ['图案审美与文化阐释','工艺技法与材料研究','非遗保护与传承治理','设计应用与产品创新','产业经济与乡村发展','身份性别与民族关系','教育培训与人才培养','数字技术与方法创新'];
+    const academicThemeColors = ['#315f9b','#d5a33d','#8d2228','#b84a42','#626b75','#77579b','#aa8457','#8d4961'];
+    const academicYears = Array.from({ length: 21 }, (_, index) => 2006 + index);
+    const academicYearData = [[0,2,2,1,0,0,1,0],[1,1,0,0,0,0,0,0],[3,2,3,0,0,1,1,0],[1,1,1,0,0,0,0,0],[5,4,3,2,4,3,2,1],[3,3,1,2,1,0,0,1],[8,1,7,6,3,1,0,0],[3,3,1,1,1,2,1,1],[10,1,2,3,1,1,0,0],[8,6,4,5,1,0,0,1],[3,4,3,3,3,1,0,1],[2,0,2,2,3,1,1,1],[6,1,5,2,1,2,2,1],[4,2,5,1,0,1,0,1],[5,1,1,6,2,1,0,0],[3,3,4,5,2,3,1,1],[1,1,1,3,1,0,0,0],[4,2,3,3,3,7,1,1],[3,2,3,1,1,2,0,0],[3,1,3,1,2,3,1,1],[2,0,0,2,1,0,0,1]];
+    function drawAcademicBars() {
+      const svg = document.getElementById('academicThemeSvg');
+      if (!svg) return;
+      svg.innerHTML = '';
+      const width = 1680, height = 940, margin = { top: 128, right: 30, bottom: 90, left: 58 }, chartLeft = margin.left, chartTop = margin.top, chartWidth = width - margin.left - margin.right, chartHeight = height - margin.top - margin.bottom, chartBottom = chartTop + chartHeight, yMax = 30;
+      academicThemes.forEach((theme, index) => {
+        const column = index % 4, row = Math.floor(index / 4), x = 58 + column * 405, y = 22 + row * 36;
+        svg.append(academicSvgEl('rect', { x, y, width: 18, height: 18, fill: academicThemeColors[index] }), academicSvgEl('text', { x: x + 27, y: y + 14, fill: '#ead9b5', 'font-size': '20' }, theme));
+      });
+      for (let value = 0; value <= yMax; value += 5) {
+        const y = chartBottom - value / yMax * chartHeight;
+        svg.append(academicSvgEl('line', { x1: chartLeft, y1: y, x2: chartLeft + chartWidth, y2: y, stroke: 'rgba(234,217,181,.13)', 'stroke-width': '1' }), academicSvgEl('text', { x: chartLeft - 11, y: y + 4, fill: '#ead9b5', 'font-size': '12', 'text-anchor': 'end' }, value));
+      }
+      const slotWidth = chartWidth / academicYears.length, barWidth = Math.min(55, slotWidth - 7);
+      academicYears.forEach((year, yearIndex) => {
+        const x = chartLeft + yearIndex * slotWidth + (slotWidth - barWidth) / 2;
+        let cumulative = 0;
+        academicYearData[yearIndex].forEach((value, themeIndex) => {
+          if (value <= 0) return;
+          const segmentHeight = value / yMax * chartHeight, y = chartBottom - (cumulative + value) / yMax * chartHeight, delay = yearIndex * .045 + themeIndex * .025;
+          const rect = academicSvgEl('rect', { x, y, width: barWidth, height: segmentHeight, fill: academicThemeColors[themeIndex], class: 'academic-bar-segment' });
+          rect.style.animationDelay = `${delay}s`;
+          rect.append(academicSvgEl('title', {}, `${year}年｜${academicThemes[themeIndex]}：${value}篇论文`));
+          const label = academicSvgEl('text', { x: x + barWidth / 2, y: y + segmentHeight / 2 + 4, fill: '#ead9b5', 'font-size': segmentHeight < 22 ? '10' : '12', 'font-weight': '600', 'text-anchor': 'middle', class: 'academic-bar-value' }, value);
+          label.style.animationDelay = `${.7 + delay}s`;
+          svg.append(rect, label);
+          cumulative += value;
+        });
+        svg.append(academicSvgEl('text', { x: x + barWidth / 2, y: chartBottom + 25, fill: '#ead9b5', 'font-size': '12', 'text-anchor': 'middle' }, year));
+      });
+    }
+    function restartAcademicBars(page) {
+      if (!page?.classList.contains('academic-bars-page')) return;
+      page.querySelectorAll('.academic-bar-segment, .academic-bar-value').forEach(element => {
+        element.style.animation = 'none';
+        void element.getBoundingClientRect();
+        element.style.animation = '';
+      });
+    }
+    drawAcademicMatrix();
+    drawAcademicBars();
+    pages.forEach((page, index) => {
+      if (index !== 2 || page.classList.contains('page-03-plain')) return;
+      page.classList.add('has-char-reveal');
+      const paragraphs = [...page.querySelectorAll('.story p, .data-copy p')];
+      const characterTotal = paragraphs.reduce((total, paragraph) => total + Array.from(paragraph.textContent).filter(character => !/\s/u.test(character)).length, 0);
+      const thirdPageStep = index === 2 && characterTotal > 1 ? (7 - .42) / (characterTotal - 1) : 0;
+      let charIndex = 0;
+      paragraphs.forEach(paragraph => {
+        const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+        textNodes.forEach(textNode => {
+          const fragment = document.createDocumentFragment();
+          Array.from(textNode.nodeValue).forEach(character => {
+            if (/\s/u.test(character)) {
+              fragment.append(character);
+              return;
+            }
+            const span = document.createElement('span');
+            span.className = 'reveal-char';
+            const delay = index === 2 ? charIndex * thirdPageStep : Math.min(charIndex * .012, 3.2);
+            span.style.setProperty('--char-delay', `${delay.toFixed(4)}s`);
+            span.textContent = character;
+            fragment.append(span);
+            charIndex += 1;
+          });
+          textNode.replaceWith(fragment);
+        });
+      });
+    });
+    const navTargets = navButtons.map(button => ({
+      button,
+      index: pages.findIndex(page => page.dataset.title === button.dataset.target)
+    })).filter(item => item.index >= 0);
+    totalPage.textContent = String(pages.length).padStart(2, '0');
+    function updateReadingState() {
+      progressBar.style.transform = `scaleX(${(pageIndex + 1) / pages.length})`;
+      let activeTarget = navTargets[0];
+      navTargets.forEach(target => { if (target.index <= pageIndex) activeTarget = target; });
+      navButtons.forEach(button => button.classList.toggle('active', button === activeTarget.button));
+    }
+    updateReadingState();
+    function showPage(index) {
+      if (index < 0 || index >= pages.length || index === pageIndex || locked) return;
+      locked = true;
+      const departingPage = pages[pageIndex];
+      const arrivingPage = pages[index];
+      if (departingPage.querySelector('.cover-ornament')) departingPage.classList.add('is-leaving');
+      if (departingPage.classList.contains('news-interlude')) departingPage.classList.add('interlude-leaving');
+      departingPage.classList.remove('reveal-playing');
+      pages[pageIndex].classList.remove('active');
+      pageIndex = index;
+      arrivingPage.classList.remove('reveal-playing');
+      void arrivingPage.offsetWidth;
+      arrivingPage.classList.add('active');
+      restartAcademicBars(arrivingPage);
+      if (arrivingPage.classList.contains('has-char-reveal')) requestAnimationFrame(() => arrivingPage.classList.add('reveal-playing'));
+      currentPage.textContent = String(pageIndex + 1).padStart(2, '0');
+      nextButton.hidden = pageIndex === pages.length - 1;
+      updateReadingState();
+      if (pageIndex === 4) requestAnimationFrame(growDistributionMapBars);
+      if (pageIndex === 7) requestAnimationFrame(() => seedMapChart?.resize());
+      setTimeout(() => {
+        departingPage.classList.remove('is-leaving', 'interlude-leaving');
+        locked = false;
+      }, 850);
+    }
+    function nextPage() { showPage(pageIndex + 1); }
+    function previousPage() { showPage(pageIndex - 1); }
+    nextButton.addEventListener('click', nextPage);
+    navToggle.addEventListener('click', () => {
+      const isOpen = topNav.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    navTargets.forEach(target => target.button.addEventListener('click', () => {
+      showPage(target.index);
+      topNav.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }));
+    document.addEventListener('click', event => {
+      if (!topNav.contains(event.target)) {
+        topNav.classList.remove('is-open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+    window.addEventListener('wheel', event => {
+      event.preventDefault();
+      if (Math.abs(event.deltaY) < 4) return;
+      event.deltaY > 0 ? nextPage() : previousPage();
+    }, { passive: false });
+    window.addEventListener('keydown', event => {
+      if (['ArrowDown', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); nextPage(); }
+      if (['ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); previousPage(); }
+    });
+    window.addEventListener('touchstart', event => { touchStartY = event.changedTouches[0].screenY; }, { passive: true });
+    window.addEventListener('touchend', event => {
+      const distance = touchStartY - event.changedTouches[0].screenY;
+      if (Math.abs(distance) > 42) distance > 0 ? nextPage() : previousPage();
+    }, { passive: true });
+  </script>
+</body>
+</html>
