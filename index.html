@@ -548,9 +548,17 @@
     .page16-layout .page-content.split { gap: clamp(42px, 5vw, 78px); }
     .law-page .final-static-copy p { font-size: clamp(15px, 1.18vw, 19px); line-height: 1.7; letter-spacing: .025em; }
     .law-page .final-static-copy { width: min(620px, 42vw); }
-    .law-page .final-static-copy { margin-right: 5%; margin-left: auto; transform: none; }</style>
+    .law-page .final-static-copy { margin-right: 5%; margin-left: auto; transform: none; }    .site-loader { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #000; opacity: 1; visibility: visible; transition: opacity .6s ease, visibility 0s linear 0s; }
+    .site-loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s ease, visibility 0s linear .6s; }
+    .site-loader-inner { display: grid; justify-items: center; gap: 18px; color: var(--gold); letter-spacing: .2em; font-size: 13px; }
+    .site-loader-ring { width: 42px; height: 42px; border: 1px solid rgba(217,168,78,.28); border-top-color: var(--gold); border-radius: 50%; animation: site-loader-spin 1s linear infinite; }
+    .site-loader-progress { width: 180px; height: 2px; overflow: hidden; background: rgba(244,238,226,.16); }
+    .site-loader-progress span { display: block; width: 0; height: 100%; background: var(--gold); transition: width .25s ease; }
+    @keyframes site-loader-spin { to { transform: rotate(360deg); } }
+</style>
 </head>
-<body>
+<body class="is-loading">
+  <div class="site-loader" id="site-loader" role="status" aria-live="polite"><div class="site-loader-inner"><div class="site-loader-ring" aria-hidden="true"></div><div id="site-loader-label">正在加载 0%</div><div class="site-loader-progress" aria-hidden="true"><span id="site-loader-progress-bar"></span></div></div></div>
   <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <nav class="top-nav" aria-label="章节导航">
     <button class="nav-toggle" id="nav-toggle" aria-label="打开章节导航" aria-expanded="false" aria-controls="chapter-navigation"><span aria-hidden="true"></span></button>
@@ -596,6 +604,31 @@
   <div class="page-number" aria-live="polite"><b id="current-page">01</b> ／ <span id="page-total">01</span></div>
   <button class="next" id="next" aria-label="下一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 8 7-8"></path></svg></button>
   <script>
+    const siteLoader = document.getElementById('site-loader');
+    const siteLoaderLabel = document.getElementById('site-loader-label');
+    const siteLoaderBar = document.getElementById('site-loader-progress-bar');
+    const waitForImage = image => image.complete ? Promise.resolve() : new Promise(resolve => {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', resolve, { once: true });
+    });
+    const finishLoading = async () => {
+      const images = [...document.images];
+      const total = images.length + 1;
+      let completed = 0;
+      const updateProgress = () => {
+        completed += 1;
+        const percent = Math.min(100, Math.round(completed / total * 100));
+        if (siteLoaderLabel) siteLoaderLabel.textContent = `正在加载 ${percent}%`;
+        if (siteLoaderBar) siteLoaderBar.style.width = `${percent}%`;
+      };
+      await Promise.all(images.map(image => waitForImage(image).then(updateProgress)));
+      await (document.fonts?.ready || Promise.resolve());
+      updateProgress();
+      document.body.classList.remove('is-loading');
+      siteLoader?.classList.add('is-done');
+      window.setTimeout(() => siteLoader?.remove(), 700);
+    };
+    window.addEventListener('load', finishLoading, { once: true });
     const pages = [...document.querySelectorAll('.page')];    const charRevealPages = [pages[2], pages[19]].filter(Boolean);
     charRevealPages.forEach(page => {
       page.classList.add('char-reveal-page');
